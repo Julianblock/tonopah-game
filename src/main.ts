@@ -117,7 +117,8 @@ async function boot() {
 
   loading.progress('Growing the sagebrush and pinyon', 0.95);
   const treeBuf = await fetch('data/trees.bin').then((r) => r.arrayBuffer());
-  const trees = new Trees(treeBuf, world.meta.trees?.size ?? 16000, heightfield, roadIndex, cemeteryPlans.flatMap((p) => p.trees), water);
+  const landmarks = new Landmarks(world.osm, heightfield);
+  const trees = new Trees(treeBuf, world.meta.trees?.size ?? 16000, heightfield, roadIndex, cemeteryPlans.flatMap((p) => p.trees), water, (x, z) => landmarks.covers(x, z));
   engine.scene.add(trees.group);
   const seasonMonth = () => env.month - 1 + (env.day - 1) / 30;
   trees.setSeason(seasonMonth());
@@ -128,7 +129,6 @@ async function boot() {
 
   loading.progress('Lighting the Mizpah and the Clown Motel', 0.97);
   const power = new PowerLines(world.osm, heightfield);
-  const landmarks = new Landmarks(world.osm, heightfield);
   const props = new Props(world.osm, heightfield, power.pylons, (x, z) => landmarks.occupies(x, z), roadIndex, landmarks.lots);
   const lights = new LightPoints([...props.lights, ...landmarks.lights]);
   engine.scene.add(props.group, landmarks.group, lights.points, power.mesh);
