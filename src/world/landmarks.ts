@@ -110,6 +110,15 @@ export class Landmarks {
     return this.k.sites.some((s) => Math.hypot(x - s.x, z - s.z) < s.radius);
   }
 
+  /** True inside a landmark's exact footprint. */
+  covers(x: number, z: number) {
+    return this.k.blocks.some(({ fr, x0, x1, z0, z1 }) => {
+      const dx = x - fr.o.x, dz = z - fr.o.z;
+      const lx = dx * fr.r.x + dz * fr.r.z, lz = dx * fr.f.x + dz * fr.f.z;
+      return lx > x0 && lx < x1 && lz > z0 && lz < z1;
+    });
+  }
+
   addShadowCasters(shadow: ShadowMap) {
     shadow.addCaster(this.solidGeo, this.shadowMat);
   }
