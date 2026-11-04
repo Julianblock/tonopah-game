@@ -1,4 +1,4 @@
-import { BLACK, fitText, neon, rounded, SANS, SCRIPT, SERIF, type SignSpec } from './signKit';
+import { BLACK, dotMatrix, fitText, neon, rounded, SANS, SCRIPT, SERIF, type SignSpec } from './signKit';
 
 /** Marquee bulbs around a sign's edge. */
 function bulbs(g: CanvasRenderingContext2D, w: number, h: number, inset: number, pitch: number, color: string, frame = 0) {
@@ -326,6 +326,143 @@ export const TONOPAH_SIGNS: SignSpec[] = [
       clownFace(g, w / 2, h * 0.55, 230, '#ff6a1a', '#2a6ad8');
       g.fillStyle = '#1a1a1a';
       fitText(g, 'WELCOME TO THE CLOWN MOTEL', w / 2, h * 0.975, w * 0.9, (p) => `${p}px ${BLACK}`, 34);
+    },
+  },
+  {
+    // Tonopah Station's highway pylon: a steam engine under the name.
+    name: 'stationPylon',
+    w: 720,
+    h: 540,
+    draw(g, w, h) {
+      const grad = g.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#5a1a0e');
+      grad.addColorStop(1, '#2a0a06');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, w, h);
+      bulbs(g, w, h, 16, 30, '#ffd27a');
+      // A locomotive in silhouette with a plume of smoke.
+      g.fillStyle = '#f0c860';
+      const lx = w / 2 - 170, ly = h * 0.44;
+      g.fillRect(lx + 40, ly - 50, 170, 60);
+      g.fillRect(lx + 210, ly - 90, 90, 100);
+      g.fillRect(lx + 60, ly - 92, 26, 42);
+      g.beginPath();
+      g.moveTo(lx + 40, ly + 10);
+      g.lineTo(lx, ly + 34);
+      g.lineTo(lx + 40, ly + 34);
+      g.fill();
+      for (const [cx, r] of [[lx + 70, 22], [lx + 125, 22], [lx + 180, 22], [lx + 255, 30]]) {
+        g.beginPath();
+        g.arc(cx, ly + 22, r, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.fillStyle = 'rgba(240,230,210,0.5)';
+      for (let i = 0; i < 5; i++) {
+        g.beginPath();
+        g.arc(lx + 70 - i * 34, ly - 110 - i * 14, 18 + i * 6, 0, Math.PI * 2);
+        g.fill();
+      }
+      neon(g, 'TONOPAH', w / 2, h * 0.68, w * 0.82, (p) => `bold ${p}px ${SERIF}`, 92, '#ffe08a');
+      neon(g, 'STATION', w / 2, h * 0.84, w * 0.7, (p) => `bold ${p}px ${SERIF}`, 74, '#ff4a2a');
+      g.fillStyle = '#f0e0c0';
+      fitText(g, 'HOTEL · CASINO · RV PARK', w / 2, h * 0.95, w * 0.7, (p) => `bold ${p}px ${SANS}`, 26);
+    },
+  },
+  {
+    name: 'stationBoard',
+    w: 720,
+    h: 150,
+    frames: 4,
+    draw(g, w, h, f) {
+      const msgs = [['LOOSE SLOTS', '24 HRS'], ['PRIME RIB', 'FRI & SAT'], ['WELCOME', 'HUNTERS'], ['ROOMS', 'FREE WIFI']];
+      dotMatrix(g, w, h, msgs[f], '#ffb020');
+    },
+  },
+  {
+    // Across the depot gable over the entrance.
+    name: 'stationGable',
+    w: 900,
+    h: 140,
+    draw(g, w, h) {
+      g.fillStyle = '#2a1408';
+      g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#d8b070';
+      g.lineWidth = 6;
+      g.strokeRect(8, 8, w - 16, h - 16);
+      neon(g, 'TONOPAH STATION', w / 2, h * 0.52, w * 0.9, (p) => `bold ${p}px ${SERIF}`, h * 0.62, '#ffd890');
+    },
+  },
+  {
+    name: 'stationHouse',
+    w: 560,
+    h: 120,
+    draw(g, w, h) {
+      g.fillStyle = '#1a0e08';
+      g.fillRect(0, 0, w, h);
+      neon(g, 'Station House Restaurant', w / 2, h * 0.52, w * 0.9, (p) => `${p}px ${SCRIPT}`, h * 0.6, '#ff6a3a');
+    },
+  },
+  {
+    name: 'stationCage',
+    w: 400,
+    h: 100,
+    draw(g, w, h) {
+      g.fillStyle = '#0a1a10';
+      g.fillRect(0, 0, w, h);
+      neon(g, 'CASHIER', w / 2, h * 0.52, w * 0.8, (p) => `bold ${p}px ${SANS}`, h * 0.6, '#5aff8a');
+    },
+  },
+  {
+    name: 'stationBar',
+    w: 480,
+    h: 110,
+    draw(g, w, h) {
+      g.fillStyle = '#0a0a1a';
+      g.fillRect(0, 0, w, h);
+      neon(g, 'WHISTLE STOP BAR', w / 2, h * 0.52, w * 0.88, (p) => `bold ${p}px ${SANS}`, h * 0.5, '#4ac8ff');
+    },
+  },
+  {
+    // The Tonopah & Goldfield Railroad mural over the casino floor.
+    name: 'locoMural',
+    w: 1000,
+    h: 300,
+    draw(g, w, h) {
+      const sky = g.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#e8a050');
+      sky.addColorStop(0.7, '#f0d8a0');
+      g.fillStyle = sky;
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#8a6a4a';
+      g.beginPath();
+      g.moveTo(0, h * 0.7);
+      for (let x = 0; x <= w; x += 50) g.lineTo(x, h * 0.55 + Math.sin(x * 0.013) * 30 + Math.sin(x * 0.031) * 15);
+      g.lineTo(w, h);
+      g.lineTo(0, h);
+      g.fill();
+      g.fillStyle = '#c8a878';
+      g.fillRect(0, h * 0.82, w, h * 0.18);
+      g.fillStyle = '#3a2a1a';
+      g.fillRect(0, h * 0.83, w, 4);
+      g.fillStyle = '#1a1210';
+      const ly = h * 0.8;
+      g.fillRect(560, ly - 70, 180, 60);
+      g.fillRect(740, ly - 110, 80, 100);
+      g.fillRect(590, ly - 110, 24, 40);
+      for (let i = 0; i < 3; i++) g.fillRect(150 + i * 140, ly - 60, 120, 55);
+      for (const cx of [590, 650, 710, 780]) {
+        g.beginPath();
+        g.arc(cx, ly, 18, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.fillStyle = 'rgba(250,250,240,0.7)';
+      for (let i = 0; i < 6; i++) {
+        g.beginPath();
+        g.arc(600 - i * 50, ly - 130 - i * 10, 20 + i * 5, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.fillStyle = '#2a1408';
+      fitText(g, 'TONOPAH & GOLDFIELD RAILROAD · 1904', w / 2, h * 0.1, w * 0.6, (p) => `bold ${p}px ${SERIF}`, 30);
     },
   },
   ...CLOWN_ART,
