@@ -10,6 +10,7 @@ import { buildSignAtlas } from './signAtlas';
 import { clownCollection, clownLobby, clownOffice, clownPole, clownRooms, clownWing } from './sites/clownMotel';
 import { clownHorror } from './sites/clownHorror';
 import { stationDining, stationFloor, stationHotel, stationPylon, stationShell } from './sites/station';
+import { courthouseShell } from './sites/courthouse';
 import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
@@ -32,6 +33,8 @@ export class Landmarks {
   readonly station: Frame;
   /** Hoist house frames, one per headframe. */
   readonly hoists: Frame[];
+  /** The courthouse frame on its lobby floor. */
+  readonly courthouse: Frame;
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -69,6 +72,7 @@ export class Landmarks {
     stationPylon(k, station);
     stationHotel(k, station);
     this.hoists = mines(k);
+    this.courthouse = courthouseShell(k);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
