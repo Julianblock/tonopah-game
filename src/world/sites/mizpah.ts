@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Frame } from '../builders';
+import * as F from '../furniture';
 import type { Hole, Kit } from '../kit';
 
 // The Mizpah Hotel, 1907: five storeys of red brick with sandstone trim at the
@@ -11,6 +12,7 @@ export const BRICK = '#7e3426';
 const BRICK_DARK = '#5e2418';
 export const STONE = '#d8c8a6';
 const PLASTER = '#e6dcc4';
+const BRASS_DARK = '#8a6a30';
 export const W = 16;
 export const D = 33.7;
 /** Lobby storey, then four guest floors. */
@@ -153,4 +155,97 @@ function cornice(k: Kit, b: Frame) {
   k.box(b, 0, TOP + 1.8, 0.32, 2.4, 0.7, 0.06, STONE, m);
   // Brick pilasters at the corners.
   for (const x of [-W / 2 + 0.35, W / 2 - 0.35]) k.box(b, x, 0, 0.3, 0.9, TOP - 0.6, 0.2, BRICK, m);
+}
+
+/**
+ * The lobby: black-and-white mosaic, mahogany wainscot, a pressed-tin ceiling
+ * hung with crystal chandeliers, the front desk and its key cubbies, a parlour
+ * of velvet furniture round a piano, and a nook of slot machines.
+ */
+export function mizpahLobby(k: Kit, b: Frame) {
+  k.seed = 22;
+  const back = -20.4;
+  // Mosaic: a white field of small black tiles in a checker, with a border band.
+  for (let x = -7.2; x < 7.3; x += 0.5) {
+    for (let z = -0.8; z > back + 0.3; z -= 0.5) {
+      const i = Math.round((x + 7.2) / 0.5), j = Math.round((-0.8 - z) / 0.5);
+      const edge = i === 0 || j === 0 || x > 7.0 || z < back + 0.6;
+      if (edge || (i + j) % 2 === 0) k.ibox(b, x + 0.25, 0, z - 0.25, 0.47, 0.012, 0.47, edge ? '#5a1e18' : '#1a1a1a', 0.25);
+    }
+  }
+  k.ibox(b, 0, 0, -0.5 + 0.02 - 0.25, 15, 0.006, 0.5, '#e8e4da', 0.3);
+  // Mahogany wainscot round the room, under the window sills.
+  const wain = '#4a1e14';
+  k.ibox(b, 0, 0, -0.56, 15, 0.5, 0.06, wain, 0.4);
+  k.ibox(b, -7.44, 0, (back - 0.5) / 2, 0.06, 1.3, -back - 0.5, wain, 0.4);
+  k.ibox(b, 7.44, 0, (back - 0.5) / 2, 0.06, 0.55, -back - 0.5, wain, 0.4);
+  k.ibox(b, -7.4, 1.3, (back - 0.5) / 2, 0.1, 0.08, -back - 0.5, '#2a100a', 0.4);
+  // Partition to the Jack Dempsey Room, an arched opening in the middle.
+  k.wall(b, -7.5, 7.5, back + 0.12, 0, G0 - 0.3, 0.24, PLASTER, PLASTER, [{ x: 0.5, y: 0, w: 3.6, h: 3.1, trim: wain, arch: 0.4 }], k.in());
+  k.ibox(b, 0, 0, back + 0.14, 15, 1.3, 0.04, wain, 0.4);
+
+  // Pressed-tin ceiling, left open over the stairwell.
+  const cy = G0 - 0.31;
+  F.tinCeiling(k, b, 1.9, cy, (back - 0.5) / 2, 11.2, -back - 0.5, '#d4cab0', 0.9);
+  F.tinCeiling(k, b, -5.65, cy, (-0.5 + STAIR.z1) / 2, 3.7, STAIR.z1 + 0.5, '#d4cab0', 0.9);
+  F.tinCeiling(k, b, -5.65, cy, (STAIR.z0 + back) / 2, 3.7, STAIR.z0 - back, '#d4cab0', 0.9);
+  F.chandelier(k, b, 1.2, cy, -4, 0.8, 10, 10, 1.6);
+  F.chandelier(k, b, 3.2, cy, -11.5, 0.7, 8, 9, 1.4);
+  F.chandelier(k, b, 1.0, cy, -17.4, 0.6, 8, 8, 1.2);
+
+  // Cast-iron columns with fluted shafts and Corinthian-ish caps.
+  for (const z of [-7.2, -14]) {
+    k.cyl(b, 1.0, 0, z, 0.3, 0.3, 0.3, '#2a2420', k.in(0.4), 8);
+    k.cyl(b, 1.0, 0.3, z, 0.17, 0.15, G0 - 1.1, '#3a3430', k.in(0.35), 12);
+    k.cyl(b, 1.0, G0 - 0.8, z, 0.17, 0.32, 0.5, BRASS_DARK, k.in(0.35), 12);
+  }
+
+  // Front desk: a marble-topped mahogany counter, brass bell and register,
+  // and behind it the pigeonholes and hooks for every room key.
+  const desk = b.sub(-5.4, 0, -4.2, Math.PI / 2);
+  k.ibox(desk, 0, 0, 0, 5.0, 1.1, 0.7, F.WOOD.mahogany, 0.45);
+  for (let x = -2.2; x <= 2.2; x += 0.88) k.ibox(desk, x, 0.15, 0.36, 0.7, 0.8, 0.02, '#5a2a1a', 0.45);
+  k.ibox(desk, 0, 1.1, 0.04, 5.2, 0.06, 0.86, '#e8e4dc', 0.15);
+  k.sphere(desk, 1.2, 1.2, 0.1, 0.06, F.BRASS, k.in(0.2), 8);
+  k.ibox(desk, -0.8, 1.16, 0.0, 0.5, 0.05, 0.36, '#3a1a10', 0.6);
+  k.ibox(desk, -0.8, 1.21, 0.0, 0.46, 0.01, 0.32, '#f0e8d4', 0.8);
+  k.ibox(desk, 2.0, 1.16, -0.1, 0.36, 0.28, 0.3, F.BRASS, 0.25);
+  const cub = b.sub(-7.36, 0, -4.2, Math.PI / 2);
+  k.ibox(cub, 0, 1.2, 0, 4.4, 1.9, 0.3, F.WOOD.mahogany, 0.45);
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 10; c++) {
+      k.ibox(cub, -1.98 + c * 0.44, 1.3 + r * 0.29, 0.1, 0.38, 0.24, 0.12, '#1e0c06', 0.6);
+      if ((r * 10 + c) % 3 !== 0) k.ibox(cub, -1.98 + c * 0.44, 1.38 + r * 0.29, 0.16, 0.04, 0.12, 0.02, F.BRASS, 0.25);
+    }
+  }
+  k.sign(cub, 'mizpahDesk', 0, 3.45, 0.18, 0.42, 0.3);
+  k.lamp(desk, 0, 2.2, 0.6, 4.5, 0.7);
+  F.chair(k, desk, 0.6, 0, -0.9, 0, F.WOOD.mahogany, '#5a1a1a');
+
+  // Parlour: velvet sofa and armchairs round a Persian rug, a piano by the window.
+  F.rug(k, b, 4.4, 0, -7.6, 4.6, 6.0, '#5a1418', '#c8a050');
+  F.sofa(k, b, 6.6, 0, -7.6, -Math.PI / 2, 2.4, '#6a1820');
+  F.armchair(k, b, 2.5, 0, -6.3, Math.PI / 2 + 0.3, '#6a1820');
+  F.armchair(k, b, 2.5, 0, -8.9, Math.PI / 2 - 0.3, '#6a1820');
+  F.table(k, b, 4.6, 0, -7.6, 0.9, 1.4, F.WOOD.walnut, F.WOOD.walnut, 0.45);
+  F.armchair(k, b, 4.4, 0, -4.4, Math.PI, '#2a3a2a');
+  F.roundTable(k, b, 5.8, 0, -3.0, 0.4, F.WOOD.walnut, 0.7);
+  F.nightstand(k, b, 6.9, 0, -10.6, -Math.PI / 2, F.WOOD.walnut, '#f0d090');
+  F.piano(k, b, 6.9, 0, -13.2, -Math.PI / 2);
+  F.stool(k, b, 5.9, 0, -13.2, '#2a1010', F.WOOD.walnut);
+  F.plant(k, b, 6.8, 0, -1.2, 1.7);
+  F.plant(k, b, -2.4, 0, -1.2, 1.7);
+  F.plant(k, b, 6.8, 0, -15.2, 1.5);
+  // Grandfather clock by the stairs.
+  k.ibox(b, -3.4, 0, -14.4, 0.55, 2.1, 0.4, F.WOOD.walnut, 0.4);
+  k.cyl(b, -3.4, 1.65, -14.18, 0.2, 0.2, 0.02, '#f0e8d0', k.in(0.4), 14);
+  k.ibox(b, -3.4, 0.5, -14.18, 0.08, 0.8, 0.01, F.BRASS, 0.25);
+  // Portraits of the camp's founders over the wainscot.
+  for (let i = 0; i < 4; i++) F.picture(k, b, -7.38, 2.6, -15 - i * 1.3, 0.8, 1.0, Math.PI / 2, 40 + i, '#9a7a3a');
+  for (const z of [-5.5, -10, -14.6]) F.sconce(k, b, 7.4, 2.4, z, -Math.PI / 2, 4, 0.5);
+  F.sconce(k, b, -7.4, 2.4, -16.5, Math.PI / 2, 4, 0.5);
+
+  // The slot nook toward the back.
+  F.slotBank(k, b, 4.6, 0, -17.6, 4, Math.PI / 2, 7);
+  F.slotBank(k, b, 1.6, 0, -18.4, 3, Math.PI / 2, 19);
 }
