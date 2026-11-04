@@ -204,8 +204,13 @@ void main() {
   if (fx > 8.5 && fx < 9.5) {
     // Indoors: the sky only leaks in through the windows; the lamps do the rest,
     // authored in display units so a lit lobby reads the same by day or night.
-    vec3 lamp = lampLight(vWorld, n) + vec3(1.0, 0.78, 0.55) * glow;
-    col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow * 0.25) * 0.22 + albedo * lamp * 0.18 * uInvExposure;
+    // Emission above 1.5 marks a self-lit fitting: lamp shades, slot screens, neon.
+    if (glow > 1.5) {
+      col = albedo * glow * 0.12 * uInvExposure;
+    } else {
+      vec3 lamp = lampLight(vWorld, n) + vec3(1.0, 0.78, 0.55) * glow;
+      col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow * 0.25) * 0.22 + albedo * lamp * 0.18 * uInvExposure;
+    }
   } else {
     col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow) + emit;
   }
