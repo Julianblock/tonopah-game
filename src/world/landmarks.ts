@@ -7,6 +7,7 @@ import type { Heightfield } from './heightfield';
 import { Kit } from './kit';
 import type { OsmData } from './meta';
 import { buildSignAtlas } from './signAtlas';
+import { mizpahShell } from './sites/mizpah';
 
 const LAMPS = 48;
 
@@ -34,6 +35,7 @@ export class Landmarks {
 
     this.welcome(-1700, -1100, -1);
     this.welcome(1300, 1900, 1);
+    mizpahShell(k);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
