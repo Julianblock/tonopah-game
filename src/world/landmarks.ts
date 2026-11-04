@@ -12,6 +12,7 @@ import { clownHorror } from './sites/clownHorror';
 import { stationDining, stationFloor, stationHotel, stationPylon, stationShell } from './sites/station';
 import { courthouseOffices, courthouseShell, courtroom } from './sites/courthouse';
 import { belvadaLobby, belvadaRooms, belvadaShell } from './sites/belvada';
+import { museumShell } from './sites/museum';
 import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
@@ -38,6 +39,8 @@ export class Landmarks {
   readonly courthouse: Frame;
   /** The Belvada's frame on the banking-hall floor. */
   readonly belvada: Frame;
+  /** The Central Nevada Museum's frame on its floor. */
+  readonly museum: Frame;
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -81,6 +84,7 @@ export class Landmarks {
     const belvada = (this.belvada = belvadaShell(k));
     belvadaLobby(k, belvada);
     belvadaRooms(k, belvada);
+    this.museum = museumShell(k);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
