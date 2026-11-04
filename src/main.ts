@@ -792,6 +792,7 @@ async function boot() {
     ghosts?.update(dt, cam, G.uNight.value);
     people.update(dt, cam.position, G.uNight.value);
     volcano.update(dt, cam, window.innerHeight * engine.pixelRatio);
+    landmarks.update(cam.position);
     if (mode === 'fly' && !free && !tour.active) {
       const body = water.sample(actor.x, actor.z).mask > 0.3 ? water.bodyAt(actor.x, actor.z) : null;
       lore.update({
