@@ -581,6 +581,44 @@ export const TONOPAH_SIGNS: SignSpec[] = [
     },
   },
   {
+    name: 'museumSign',
+    w: 900,
+    h: 200,
+    draw(g, w, h) {
+      g.fillStyle = '#5a3a22';
+      g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#e8d8b0';
+      g.lineWidth = 6;
+      g.strokeRect(10, 10, w - 20, h - 20);
+      g.fillStyle = '#f0e4c4';
+      fitText(g, 'CENTRAL NEVADA MUSEUM', w / 2, h * 0.42, w * 0.88, (p) => `bold ${p}px ${SERIF}`, h * 0.36);
+      fitText(g, 'Tonopah Historical Society', w / 2, h * 0.76, w * 0.6, (p) => `italic ${p}px ${SERIF}`, h * 0.2);
+    },
+  },
+  {
+    // Exhibit wall of sepia photographs: the boom camp, the mines, the airfield.
+    name: 'museumPhotos',
+    w: 800,
+    h: 240,
+    draw(g, w, h) {
+      g.fillStyle = '#3a2a1a';
+      g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 8; i++) {
+        const x = 20 + i * 97, y = 30 + (i % 2) * 20;
+        g.fillStyle = '#d8c8a0';
+        g.fillRect(x, y, 80, 110);
+        g.fillStyle = `rgb(${120 + (i * 17) % 50},${95 + (i * 11) % 40},${60 + (i * 7) % 30})`;
+        g.fillRect(x + 6, y + 6, 68, 80);
+        g.fillStyle = 'rgba(40,25,10,0.7)';
+        if (i % 3 === 0) g.fillRect(x + 30, y + 20, 8, 66);
+        else if (i % 3 === 1) g.fillRect(x + 10, y + 60, 60, 26);
+        else for (let p = 0; p < 4; p++) g.fillRect(x + 14 + p * 14, y + 50, 8, 36);
+      }
+      g.fillStyle = '#e8d8b0';
+      fitText(g, 'TONOPAH 1900 – 1945', w / 2, h * 0.88, w * 0.5, (p) => `bold ${p}px ${SERIF}`, 30);
+    },
+  },
+  {
     // The county seal over the judge's bench.
     name: 'nyeSeal',
     w: 300,
