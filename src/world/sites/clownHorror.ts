@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { type Frame, FX } from '../builders';
 import * as F from '../furniture';
-import type { Kit } from '../kit';
-import { RH, RW, roomFrame } from './clownMotel';
+import { FILL, type Kit } from '../kit';
+import { DARK, RH, RW, roomFrame } from './clownMotel';
 
 // The Clown Motel's horror rooms, each dressed after a film, behind the
 // doors that stand ajar along the walkway.
@@ -89,9 +89,46 @@ function overlookRoom(k: Kit, b: Frame) {
   k.lamp(rf, 1.1, 1.6, -6.0, 3, 0.35, '#c8e0ff');
 }
 
+/** A carved pumpkin with a candle glowing through its face. */
+function jackOLantern(k: Kit, fr: Frame, x: number, y: number, z: number, yaw: number, s = 1) {
+  const f = fr.sub(x, y, z, yaw);
+  k.geo(f, new THREE.SphereGeometry(0.15 * s, 12, 8).scale(1, 0.8, 1), 0, 0.12 * s, 0, '#e8761a', k.in(0.7));
+  k.cyl(f, 0, 0.23 * s, 0, 0.02 * s, 0.015 * s, 0.06 * s, '#4a6a2a', k.in(0.9), 5);
+  for (const ex of [-0.05, 0.05]) k.ibox(f, ex * s, 0.15 * s, 0.135 * s, 0.04 * s, 0.035 * s, 0.02 * s, '#ffd040', 0.5);
+  k.box(f, 0, 0.07 * s, 0.13 * s, 0.12 * s, 0.03 * s, 0.02 * s, '#ffd040', k.lit(4));
+  k.box(f, 0, 0.15 * s, 0.13 * s, 0.11 * s, 0.035 * s, 0.01 * s, '#ffd040', k.lit(4));
+  k.lamp(f, 0, 0.2 * s, 0.3 * s, 2.4, 0.45, '#ff9a3a');
+}
+
+/**
+ * 108, the Halloween room: carved pumpkins guttering on every surface,
+ * orange and black streamers, a kitchen knife on the counterpane, and a man
+ * in a white mask and mechanic's coveralls standing by the bathroom door.
+ */
+function halloweenRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 108);
+  jackOLantern(k, rf, 1.6, 0.85, -3.9, -Math.PI / 2);
+  jackOLantern(k, rf, 0.8, 0.72, -1.3, Math.PI, 0.8);
+  jackOLantern(k, rf, -1.65, 0.6, -5.75, Math.PI / 2, 0.7);
+  jackOLantern(k, rf, -1.4, 0, -1.0, Math.PI * 0.8, 1.3);
+  jackOLantern(k, rf, 0.3, 0, -6.6, 0.3, 1.1);
+  for (let i = 0; i < 12; i++) {
+    const g = new THREE.BoxGeometry(0.03, 0.01, 0.36);
+    k.s.add(g, rf.at(-1.8 + i * 0.32, RH - 0.45 - (i % 2) * 0.15, -3.5, Math.PI / 2).multiply(new THREE.Matrix4().makeRotationX(i % 2 ? 0.5 : -0.5)), i % 2 ? '#1a1a1a' : '#f07a1a', k.in(0.9), k.seed);
+  }
+  const knife = rf.sub(-0.6, 0.63, -4.1, 0.6);
+  k.ibox(knife, 0, 0, 0.12, 0.04, 0.006, 0.24, '#d8dce0', 0.1);
+  k.ibox(knife, 0, 0, -0.06, 0.035, 0.02, 0.12, '#1a1210', 0.6);
+  figure(k, rf, 1.35, 0, -7.1, 0.25, 1.88, '#3a4a5a', '#3a4a5a', '#ecebe4', '#3a2a1a');
+  k.lamp(rf, 0, 1.0, -3, 3, 0.25, '#ff8a3a');
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
+  k.fill = DARK;
   balloonRoom(k, b);
   overlookRoom(k, b);
+  halloweenRoom(k, b);
+  k.fill = FILL;
 }
