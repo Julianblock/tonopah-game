@@ -208,6 +208,7 @@ export class Kit {
    * the room lamps. Glazed openings get a pane in the middle of the wall.
    */
   wall(fr: Frame, x0: number, x1: number, z: number, y0: number, y1: number, t: number, outer: string, inner: string | null, holes: Hole[] = [], mat: Mat = {}) {
+    holes = holes.filter((h) => h.y < y1 && h.y + h.h > y0);
     const cuts = new Set<number>([x0, x1]);
     for (const h of holes) {
       cuts.add(Math.max(x0, Math.min(x1, h.x - h.w / 2)));
