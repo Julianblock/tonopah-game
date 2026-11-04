@@ -360,3 +360,60 @@ function rail(k: Kit, b: Frame, a0: number, a1: number, at: number, y: number, a
     else k.cyl(b, at, y, p, 0.025, 0.02, 0.95, F.WOOD.mahogany, k.in(0.4), 5);
   }
 }
+
+/** Centre z of guest-room slot s. */
+export const slotZ = (s: number) => -0.5 - SLOT * (s + 0.5);
+
+/**
+ * The guest floors: a long corridor down the middle with a red-and-gold runner,
+ * frosted sconces and numbered doors, rooms either side behind plaster partitions.
+ */
+export function mizpahFloors(k: Kit, b: Frame) {
+  k.seed = 25;
+  const ceil = FH - 0.3;
+  for (let fl = 1; fl < 5; fl++) {
+    const y = level(fl);
+    const fb = b.sub(0, y, 0);
+    // Corridor walls with a door into every room.
+    const sw = k.side(fb, 1, -D / 2, 1);
+    const sDoors: Hole[] = [];
+    for (let s = 0; s < SLOTS; s++) sDoors.push({ x: -(slotZ(s) + 1.8) - D / 2, y: 0, w: 1.0, h: 2.25, trim: F.WOOD.walnut });
+    k.wall(sw, -D / 2 + T, D / 2 - T, 0, 0, ceil, 0.14, '#d8c8a0', '#d8c8a0', sDoors, k.in());
+    const nw = k.side(fb, -1, -D / 2, -1);
+    const nDoors: Hole[] = [];
+    for (let s = 0; s < SLOTS; s++) {
+      if (s === 1) nDoors.push({ x: slotZ(s) + D / 2, y: 0, w: SLOT - 0.2, h: ceil - 0.01 });
+      else nDoors.push({ x: slotZ(s) + 1.8 + D / 2, y: 0, w: 1.0, h: 2.25, trim: F.WOOD.walnut });
+    }
+    k.wall(nw, -D / 2 + T, D / 2 - T, 0, 0, ceil, 0.14, '#d8c8a0', '#d8c8a0', nDoors, k.in());
+    // Partitions between rooms.
+    for (let s = 1; s < SLOTS; s++) {
+      const z = -0.5 - SLOT * s + 0.07;
+      k.wall(fb, 1, W / 2 - T, z, 0, ceil, 0.14, '#e0d4b8', '#e0d4b8', [], k.in());
+      if (s !== 1 && s !== 2) k.wall(fb, -W / 2 + T, -1, z, 0, ceil, 0.14, '#e0d4b8', '#e0d4b8', [], k.in());
+    }
+    // Stairwell side walls toward the neighbouring rooms.
+    k.wall(fb, -W / 2 + T, -1, STAIR.z1 + 0.27, 0, ceil, 0.14, '#e0d4b8', '#e0d4b8', [], k.in());
+    k.wall(fb, -W / 2 + T, -1, STAIR.z0 - 0.06, 0, ceil, 0.14, '#e0d4b8', '#e0d4b8', [], k.in());
+
+    // Runner down the corridor with a gold border, picture rail and dado.
+    k.ibox(fb, 0, 0, -D / 2, 1.5, 0.012, D - 1.4, '#7a1a22', 0.95);
+    for (const x of [-0.7, 0.7]) k.ibox(fb, x, 0, -D / 2, 0.08, 0.014, D - 1.4, '#c8a050', 0.9);
+    for (const x of [-0.92, 0.92]) {
+      k.ibox(fb, x, 0.9, -D / 2, 0.04, 0.06, D - 1.2, F.WOOD.walnut, 0.5);
+      k.ibox(fb, x, 2.5, -D / 2, 0.04, 0.05, D - 1.2, F.WOOD.walnut, 0.5);
+      k.ibox(fb, x, 0, -D / 2, 0.03, 0.9, D - 1.2, '#8a5a3a', 0.6);
+    }
+    for (let s = 0; s < SLOTS; s++) {
+      const z = slotZ(s);
+      F.sconce(k, fb, s % 2 ? 0.92 : -0.92, 2.1, z - 0.6, s % 2 ? -Math.PI / 2 : Math.PI / 2, 4.5, 0.55);
+      // Brass room numbers beside each door.
+      k.ibox(fb, 0.9, 1.65, z + 1.8 - 0.75, 0.02, 0.1, 0.24, F.BRASS, 0.25);
+      if (s !== 1) k.ibox(fb, -0.9, 1.65, z + 1.8 - 0.75, 0.02, 0.1, 0.24, F.BRASS, 0.25);
+      F.picture(k, fb, s % 2 ? -0.9 : 0.9, 1.75, z - 1.6, 0.7, 0.5, s % 2 ? Math.PI / 2 : -Math.PI / 2, 80 + fl * 7 + s, '#6a4a20');
+    }
+    // An old fire-hose cabinet and a radiator at the far end of each hall.
+    k.ibox(fb, 0.86, 0.9, -D + 1.6, 0.12, 0.9, 0.7, '#8a1a10', 0.5);
+    k.ibox(fb, 0, 0.1, -D + T + 0.12, 1.0, 0.7, 0.14, '#9a9a96', 0.4);
+  }
+}
