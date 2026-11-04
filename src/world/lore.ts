@@ -72,7 +72,7 @@ const GUIDE: Record<string, Guide> = {
   courthouse: { at: SITES.courthouse, hint: 'Circle the dome at the head of Brougher Avenue.', r: 80, h: 35 },
   belvada: { at: SITES.belvada, hint: 'Fly past the old State Bank building on Main Street.', r: 80, h: 30 },
   clown: { at: SITES.clown, hint: 'Pull in at the Clown Motel on the north edge of town. Go inside.', r: 90, h: 26 },
-  'clown-night': { at: SITES.clown, hint: 'Visit the Clown Motel after midnight. Do not stop flying.', r: 140, h: 30, night: true },
+  'clown-night': { at: SITES.clown, hint: 'Visit the Clown Motel after dark. Then stop flying, and let them catch you.', r: 140, h: 30, night: true },
   cemetery: { at: { x: 0, z: 0 }, hint: 'Fly low over the old cemetery beside the Clown Motel before nightfall.', r: 90, h: 28 },
   brewing: { at: SITES.brewing, hint: 'Find the brewery and BBQ on Main Street.', r: 70, h: 24 },
   station: { at: SITES.station, hint: 'Find the casino on Erie Street, by the museum.', r: 160, h: 50, night: true },
@@ -205,7 +205,8 @@ export class Lore {
         kicker: 'Clown Motel \u00b7 after midnight',
         title: 'They followed you',
         text: 'Something with a painted smile came out of the cemetery and chased you down Main Street. The front desk says they only come out when the neon is on. The front desk is lying.',
-        test: (s) => s.night > 0.8 && near(SITES.clown, 160, 60)(s),
+        // Found only by letting one of them catch you.
+        test: () => false,
       },
       {
         id: 'cemetery',
