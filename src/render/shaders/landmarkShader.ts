@@ -11,8 +11,9 @@ uniform vec3 uCamPos;
 in vec3 color;
 // roughness, emission, effect, seed. Effects: 0 none, 1 neon flicker, 2 bulb chase, 3 metal,
 // 4 punched hotel windows, 5 glass curtain wall, 6 balconies, 7 floodlit wall, 8 blinking sign
-// (cycles its frames quickly). On the facade effects 4-7, emission is a night-time floodlight
-// wash whose hue is fract(seed) (negative: warm white).
+// (cycles its frames quickly), 9 interior surface lit by the room lamps. On the facade effects
+// 4-7, emission is a night-time floodlight wash whose hue is fract(seed) (negative: warm white).
+// On interiors, emission is the room's ambient fill.
 in vec4 aMat;
 #ifdef USE_MAP
 // uv (built in): 0..1 across the sign face
@@ -70,6 +71,28 @@ in vec3 vNormal;
 in vec3 vColor;
 flat in vec4 vMat;
 out vec4 outColor;
+
+#define LAMPS 48
+// Nearest room lamps to the camera: position and reach (m); colour and strength.
+uniform vec4 uLamps[LAMPS];
+uniform vec4 uLampCol[LAMPS];
+
+/** Incandescent light from the room lamps, falling off to nothing at each lamp's reach. */
+vec3 lampLight(vec3 p, vec3 n) {
+  vec3 sum = vec3(0.0);
+  for (int i = 0; i < LAMPS; i++) {
+    vec4 l = uLamps[i];
+    if (l.w <= 0.0) break;
+    vec3 d = l.xyz - p;
+    float r2 = dot(d, d);
+    float reach = l.w * l.w;
+    if (r2 > reach) continue;
+    float fall = 1.0 - r2 / reach;
+    float lambert = 0.3 + 0.7 * max(dot(n, d * inversesqrt(r2 + 1e-4)), 0.0);
+    sum += uLampCol[i].rgb * uLampCol[i].a * fall * fall * lambert / (1.0 + r2 * 0.08);
+  }
+  return sum;
+}
 
 void main() {
   #include <logdepthbuf_fragment>
@@ -150,7 +173,7 @@ void main() {
     }
     vec3 lamp = fx > 4.5 && fx < 5.5 ? mix(vColor, vec3(0.92), 0.6) : vColor;
     emit += wash * lamp * glow * cone * wall * uNight * 0.2 * uInvExposure;
-  } else if (glow > 0.0) {
+  } else if (glow > 0.0 && (fx < 8.5 || fx > 9.5)) {
     float on = 1.0;
     if (fx > 1.5 && fx < 2.5) {
       // Marquee bulbs chasing along the sign.
@@ -165,7 +188,27 @@ void main() {
   }
   if (fx > 2.5 && fx < 3.5) rough = 0.3;
   float shadow = shadowAt(vWorld + n * 0.2, 0.0012);
-  vec3 col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow) + emit;
+#ifdef GLASS_PASS
+  // Window glass: a faint tint looking straight in, a sky mirror at grazing angles.
+  vec3 V = normalize(uCamPos - vWorld);
+  float F = 0.04 + 0.96 * pow(1.0 - abs(dot(n, V)), 5.0);
+  vec3 R = reflect(-V, n);
+  R.y = abs(R.y) + 0.02;
+  vec3 refl = skyRadianceDir(normalize(R)) * mix(1.0, 0.35, uNight);
+  float a = clamp(0.1 + F * 0.85, 0.0, 0.92);
+  vec3 gcol = (refl * F + vColor * 0.02) / a;
+  outColor = vec4(applyAtmosphere(gcol, vWorld), a);
+  return;
+#endif
+  vec3 col;
+  if (fx > 8.5 && fx < 9.5) {
+    // Indoors: the sky only leaks in through the windows; the lamps do the rest,
+    // authored in display units so a lit lobby reads the same by day or night.
+    vec3 lamp = lampLight(vWorld, n) + vec3(1.0, 0.78, 0.55) * glow;
+    col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow * 0.25) * 0.22 + albedo * lamp * 0.18 * uInvExposure;
+  } else {
+    col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow) + emit;
+  }
   col = applyAtmosphere(col, vWorld);
   outColor = vec4(col, 1.0);
 }
