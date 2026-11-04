@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { type Frame, FX } from '../builders';
+import * as F from '../furniture';
 import type { Hole, Kit } from '../kit';
 
 // Tonopah Station, at the south end of town on Erie Street: a hotel-casino
@@ -106,3 +107,72 @@ export function stationShell(k: Kit): Frame {
   return c;
 }
 
+/**
+ * The casino floor: patterned carpet, a lit coffered ceiling, ten banks of
+ * slots, blackjack tables, a model train circling on a shelf round the walls,
+ * and the railroad mural over the cashier's cage.
+ */
+export function stationFloor(k: Kit, c: Frame) {
+  k.seed = 51;
+  const x0 = -16, x1 = CW / 2 - 0.3, z0 = -CD + 0.3, z1 = -0.3;
+  const cols = ['#5a0a1a', '#1a1a4a', '#6a4a0a'];
+  for (let x = x0; x < x1 - 0.01; x += 2) {
+    for (let z = z0; z < z1 - 0.01; z += 2) {
+      const i = Math.round((x - x0) / 2), j = Math.round((z - z0) / 2);
+      k.ibox(c, x + 1, 0, z + 1, 2, 0.01, 2, cols[(i + j) % 3], 1);
+      k.ibox(c, x + 1, 0.01, z + 1, 0.7, 0.004, 0.7, ['#c8a040', '#2a8a6a', '#a82a3a'][(i * 2 + j) % 3], 1, Math.PI / 4);
+    }
+  }
+  // Ceiling: dark panels with lit coffers in a grid, a lamp in each.
+  k.ibox(c, 0, CEIL, -CD / 2, CW - 0.6, 0.05, CD - 0.6, '#1a1210', 0.9);
+  for (let x = -12; x <= 28; x += 8) {
+    for (let z = -6; z >= -30; z -= 8) {
+      k.ibox(c, x, CEIL - 0.25, z, 3.2, 0.25, 3.2, '#3a2410', 0.5);
+      k.box(c, x, CEIL - 0.27, z, 2.8, 0.02, 2.8, '#ffe8b8', k.lit(2.2));
+      k.lamp(c, x, CEIL - 0.6, z, 9, 0.9);
+    }
+  }
+  // Slots in two blocks of five rows.
+  for (let r = 0; r < 5; r++) {
+    for (const bx of [-6, 8]) F.slotBank(k, c, bx, 0, -8 - r * 4.6, 10, 0, 500 + r * 40 + bx);
+  }
+  // Blackjack tables by the bar.
+  for (const [tx, tz] of [[22, -9], [22, -16], [16, -12.5]]) {
+    const t = c.sub(tx, 0, tz, -Math.PI / 2);
+    k.geo(t, new THREE.CylinderGeometry(1.2, 1.2, 0.76, 20, 1, false, -Math.PI / 2, Math.PI).translate(0, 0.38, 0), 0, 0, 0, '#3a1a0a', k.in(0.5));
+    k.geo(t, new THREE.CylinderGeometry(1.12, 1.12, 0.02, 20, 1, false, -Math.PI / 2, Math.PI), 0, 0.77, 0, '#1a6a3a', k.in(0.95));
+    k.ibox(t, 0, 0.78, -0.25, 0.5, 0.12, 0.25, '#1a1a1a', 0.4);
+    for (let i = 0; i < 5; i++) {
+      const a = Math.PI * (0.15 + i * 0.175);
+      F.stool(k, t, Math.cos(a) * 1.55, 0, Math.sin(a) * 1.55, '#5a0a1a');
+      k.ibox(t, Math.cos(a) * 0.85, 0.78, Math.sin(a) * 0.85, 0.06, 0.003, 0.09, '#f4f4f0', 0.6, a);
+    }
+    k.ibox(t, 0, 0, -0.7, 0.4, 1.4, 0.3, '#1a1a1a', 0.8);
+    k.sphere(t, 0, 1.5, -0.7, 0.11, '#e8c8a8', k.in(0.6), 8);
+    k.lamp(t, 0, 2.6, 0.3, 4, 0.6, '#fff0d0');
+  }
+  // Model train on a shelf round the walls, freight cars and a caboose.
+  const shelf = (fr: Frame, len: number) => {
+    k.ibox(fr, 0, 3.55, 0.15, len, 0.05, 0.3, '#4a2a16', 0.5);
+    for (let x = -len / 2 + 0.3; x < len / 2 - 0.4; x += 0.42) {
+      const i = Math.round(x * 7.3);
+      k.ibox(fr, x, 3.6, 0.15, 0.36, 0.16, 0.14, ['#8a2a1a', '#2a3a5a', '#3a3a3a', '#6a5a2a', '#1a4a2a'][Math.abs(i) % 5], 0.6);
+    }
+  };
+  shelf(c.sub(8, 0, -0.32, Math.PI), CW - 18);
+  shelf(c.sub(8, 0, -CD + 0.3), CW - 18);
+  // The cage at the back, the mural over it.
+  const cage = c.sub(2, 0, -CD + 0.3);
+  k.ibox(cage, 0, 0, 1.2, 9, 1.1, 0.5, '#4a2a16', 0.5);
+  k.ibox(cage, 0, 1.1, 1.2, 9.2, 0.05, 0.6, '#d8c8a8', 0.3);
+  for (let x = -4.4; x <= 4.4; x += 0.14) k.ibox(cage, x, 1.15, 1.25, 0.02, 1.2, 0.02, '#c49a4a', 0.25);
+  k.ibox(cage, 0, 2.35, 1.2, 9.2, 0.3, 0.5, '#4a2a16', 0.5);
+  k.sign(cage, 'stationCage', 0, 2.5, 1.46, 0.28, 1.4, FX.INTERIOR);
+  for (const x of [-3, 0, 3]) {
+    k.ibox(cage, x, 0, 0.5, 0.35, 1.0, 0.3, '#2a3a5a', 0.8);
+    k.sphere(cage, x, 1.3, 0.5, 0.11, '#e8c8a8', k.in(0.6), 8);
+  }
+  k.lamp(cage, 0, 2.2, 1.0, 5, 0.6);
+  k.sign(cage, 'locoMural', 0, 3.6, 0.02, 1.25, 0.5, FX.INTERIOR);
+  k.spot(c, 6, -20, 10, 8);
+}
