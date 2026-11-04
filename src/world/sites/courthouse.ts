@@ -215,3 +215,94 @@ export function courthouseOffices(k: Kit, b: Frame) {
   for (const s of [-1, 1]) k.cyl(b, s * 1.2, 0, -14.4, 0.09, 0.09, 1.2, F.WOOD.walnut, k.in(0.5), 8);
   F.picture(k, b, 0, 2.6, -D + 0.45, 1.4, 1.8, 0, 62);
 }
+
+/**
+ * Upstairs: the district courtroom across the front of the building, under a
+ * coffered ceiling, with the judge's bench, the jury box, the witness stand and
+ * the public gallery behind the bar.
+ */
+export function courtroom(k: Kit, b: Frame) {
+  k.seed = 62;
+  const y = L1;
+  // Floor slab with the stair well cut out.
+  const sx1 = 1.3, sz0 = -22.2, sz1 = -14.4, x1 = W / 2 - 0.2;
+  k.slab(b, 0, y, (sz1 - 0.2) / 2, 2 * x1, -0.2 - sz1, '#6a4a30', PLASTER);
+  k.slab(b, 0, y, (sz0 - D + 0.2) / 2, 2 * x1, sz0 + D - 0.2, '#6a4a30', PLASTER);
+  for (const s of [-1, 1]) k.slab(b, (s * (x1 + sx1)) / 2, y, (sz0 + sz1) / 2, x1 - sx1, sz1 - sz0, '#6a4a30', PLASTER);
+  for (const s of [-1, 1]) k.box(b, s * sx1, y, (sz0 + sz1) / 2, 0.06, 1.0, sz1 - sz0, F.WOOD.walnut, k.in(0.5));
+
+  const ct = b.sub(0, y, 0);
+  const CD2 = 14;
+  // Partition behind the bench, with doors to chambers.
+  k.wall(ct.sub(0, 0, -CD2), -W / 2 + 0.4, W / 2 - 0.4, 0, 0, L2 - L1, 0.2, '#d8ccb0', '#d8ccb0', [{ x: -6, y: 0, w: 1.1, h: 2.4 }, { x: 6, y: 0, w: 1.1, h: 2.4 }], k.in(0.8));
+  for (let x = -W / 2 + 0.6; x < W / 2 - 0.4; x += 0.6) k.box(ct, x, 0, -0.45, 0.58, 1.2, 0.02, F.WOOD.oak, k.in(0.6));
+  // Wainscot round the room.
+  for (const s of [-1, 1]) k.box(ct, s * (W / 2 - 0.42), 0, -CD2 / 2, 0.03, 1.2, CD2, F.WOOD.oak, k.in(0.6));
+  k.box(ct, 0, 0, -CD2 + 0.12, W - 0.8, 1.2, 0.03, F.WOOD.oak, k.in(0.6));
+
+  // The bench: a raised dais and a panelled desk, the seal and flags behind.
+  const bench = ct.sub(0, 0, -CD2 + 0.2);
+  k.ibox(bench, 0, 0, 1.5, 6, 0.45, 3, F.WOOD.walnut, 0.6);
+  k.ibox(bench, 0, 0.45, 2.6, 4.4, 1.15, 0.6, F.WOOD.mahogany, 0.4);
+  k.ibox(bench, 0, 1.6, 2.6, 4.6, 0.06, 0.8, F.WOOD.walnut, 0.4);
+  for (let x = -1.9; x <= 1.9; x += 0.95) k.box(bench, x, 0.6, 2.91, 0.7, 0.85, 0.02, F.WOOD.walnut, k.in(0.5));
+  F.armchair(k, bench, 0, 0.45, 1.4, 0, '#2a1410', F.WOOD.walnut);
+  k.ibox(bench, 0, 0.45, 1.3, 0.8, 1.6, 0.12, '#2a1410', 0.6);
+  k.sign(bench, 'nyeSeal', 0, 3.1, 0.06, 1.3, 0.7, FX.INTERIOR);
+  k.cyl(bench, 0.5, 1.66, 2.5, 0.05, 0.05, 0.05, F.WOOD.walnut, k.in(0.5), 8);
+  k.ibox(bench, 0.5, 1.71, 2.5, 0.08, 0.06, 0.2, F.WOOD.walnut, 0.5);
+  for (const s of [-1, 1]) {
+    const pf = bench.sub(s * 2.6, 0.45, 0.4);
+    k.cyl(pf, 0, 0, 0, 0.03, 0.03, 2.4, F.BRASS, k.in(0.3), 6);
+    k.sphere(pf, 0, 2.45, 0, 0.06, F.BRASS, k.in(0.3));
+    for (let i = 0; i < 5; i++) k.box(pf, 0.45, 1.5 + i * 0.16, 0, 0.8, 0.16, 0.02, s < 0 ? (i % 2 ? '#f0f0ec' : '#b0222a') : '#1a2a5a', k.in(0.7));
+  }
+  // Witness stand to the judge's right, clerk's desk below.
+  const wit = bench.sub(3.6, 0, 2.4);
+  k.ibox(wit, 0, 0, 0, 1.4, 0.3, 1.4, F.WOOD.walnut, 0.6);
+  k.ibox(wit, 0, 0.3, 0.65, 1.4, 0.8, 0.1, F.WOOD.mahogany, 0.4);
+  F.chair(k, wit, 0, 0.3, -0.1, 0, F.WOOD.walnut, '#2a1410');
+  F.table(k, bench, -3.8, 0, 3.6, 1.6, 0.8, F.WOOD.walnut, F.WOOD.walnut, 0.78);
+  F.chair(k, bench, -3.8, 0, 3.0, 0, F.WOOD.walnut);
+  // Jury box along the east wall: two rows of six behind a rail.
+  const jury = ct.sub(W / 2 - 2.0, 0, -7.5, -Math.PI / 2);
+  k.ibox(jury, 0, 0, -0.3, 5.6, 0.3, 1.2, F.WOOD.walnut, 0.6);
+  k.ibox(jury, 0, 0, 1.0, 5.6, 0.95, 0.1, F.WOOD.mahogany, 0.4);
+  for (const x of [-5.6 / 2, 5.6 / 2]) k.ibox(jury, x, 0, 0, 0.1, 0.95, 2.0, F.WOOD.mahogany, 0.4);
+  for (let i = 0; i < 6; i++) {
+    F.chair(k, jury, -2.3 + i * 0.92, 0, 0.4, Math.PI, F.WOOD.oak, '#3a2a1a');
+    F.chair(k, jury, -2.3 + i * 0.92, 0.3, -0.5, Math.PI, F.WOOD.oak, '#3a2a1a');
+  }
+  // Counsel tables, the bar rail with its gate, and the gallery pews.
+  for (const s of [-1, 1]) {
+    F.table(k, ct, s * 2.6, 0, -7.6, 2.4, 1.0, F.WOOD.oak, F.WOOD.oak, 0.78);
+    for (const dx of [-0.6, 0.6]) F.chair(k, ct, s * 2.6 + dx, 0, -6.9, Math.PI, F.WOOD.oak, '#3a2a1a');
+    k.ibox(ct, s * 2.6 - 0.5, 0.78, -7.7, 0.3, 0.04, 0.4, '#f4f0e0', 0.7);
+  }
+  for (const s of [-1, 1]) {
+    k.ibox(ct, s * 4.9, 0, -5.4, W / 2 - 0.4 - 1.0, 0.95, 0.08, F.WOOD.mahogany, 0.4);
+    for (let x = 1.2; x < W / 2 - 0.4; x += 0.25) k.box(ct, s * x, 0, -5.4, 0.04, 0.95, 0.04, F.WOOD.walnut, k.in(0.5));
+  }
+  for (let r = 0; r < 4; r++) {
+    for (const s of [-1, 1]) {
+      const pz = -4.2 + r * 1.0;
+      k.ibox(ct, s * 4.6, 0, pz, 6.2, 0.45, 0.45, F.WOOD.oak, 0.6);
+      k.ibox(ct, s * 4.6, 0.45, pz + 0.22, 6.2, 0.55, 0.06, F.WOOD.oak, 0.6);
+      for (const e of [-3.1, 3.1]) k.ibox(ct, s * 4.6 + e, 0, pz, 0.08, 0.95, 0.5, F.WOOD.walnut, 0.5);
+    }
+  }
+  // Coffered ceiling, chandeliers, tall windows' light, portraits of the judges.
+  const ch = L2 - L1;
+  for (let x = -W / 2 + 0.4; x <= W / 2 - 0.4; x += 2.4) k.box(ct, x, ch - 0.35, -CD2 / 2, 0.25, 0.35, CD2, '#e8e0cc', k.in(0.8));
+  for (let z = -0.4; z >= -CD2; z -= 2.4) k.box(ct, 0, ch - 0.35, z, W - 0.8, 0.35, 0.25, '#e8e0cc', k.in(0.8));
+  for (const z of [-3.5, -9.5]) F.chandelier(k, ct, 0, ch - 1.2, z, 0.8, 8, 9, 1.6);
+  for (const s of [-1, 1]) for (const z of [-2.5, -5.5, -11]) F.picture(k, ct, s * (W / 2 - 0.45), 2.4, z, 0.8, 1.1, (-s * Math.PI) / 2, 63 + z, '#c49a4a');
+
+  // Chambers behind: the judge's desk and law books.
+  const cham = ct.sub(-5, 0, -CD2 - 2.5);
+  F.table(k, cham, 0, 0, 0, 1.8, 0.9, F.WOOD.walnut, F.WOOD.walnut, 0.78);
+  F.armchair(k, cham, 0, 0, -0.9, 0, '#2a1410');
+  for (let r = 0; r < 5; r++) for (let i = 0; i < 16; i++) k.ibox(cham, -2.2 + i * 0.14, 0.2 + r * 0.42, -4.6, 0.12, 0.32, 0.25, ['#5a1a14', '#1a2a4a', '#3a2a14', '#2a3a1a'][(i + r) % 4], 0.7);
+  k.ibox(cham, -1.1, 0, -4.8, 2.4, 2.3, 0.1, F.WOOD.walnut, 0.6);
+  k.lamp(cham, 0, 3.4, -2, 6, 1.0);
+}
