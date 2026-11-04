@@ -24,7 +24,7 @@ export interface Site {
 }
 
 /** Interior surfaces default to a soft fill so rooms never go pitch black between lamps. */
-const FILL = 0.5;
+export const FILL = 0.5;
 
 /**
  * Shared toolkit for the hand-built landmarks: solids, sign faces, window glass,
@@ -45,6 +45,8 @@ export class Kit {
   readonly spots: { x: number; z: number; r: number; n: number }[] = [];
   readonly farSpots: { x: number; z: number; r: number; n: number }[] = [];
   seed = 0;
+  /** Ambient fill for the interior being built; lower it for rooms meant to be dark. */
+  fill = FILL;
   private c = new THREE.Color();
 
   constructor(
@@ -139,7 +141,7 @@ export class Kit {
   }
 
   /** Interior surface material: lit by the room lamps. */
-  in(rough = 0.8, fill = FILL): Mat {
+  in(rough = 0.8, fill = this.fill): Mat {
     return { rough, glow: fill, fx: FX.INTERIOR };
   }
 
