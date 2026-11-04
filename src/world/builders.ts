@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { SignRect } from './signAtlas';
 
 export const UP = new THREE.Vector3(0, 1, 0);
-export const FX = { NONE: 0, NEON: 1, CHASE: 2, METAL: 3, WINDOWS: 4, GLASS: 5, BALCONY: 6, WASH: 7, BLINK: 8 } as const;
+export const FX = { NONE: 0, NEON: 1, CHASE: 2, METAL: 3, WINDOWS: 4, GLASS: 5, BALCONY: 6, WASH: 7, BLINK: 8, INTERIOR: 9 } as const;
 
 export interface Mat {
   rough?: number;
@@ -112,6 +112,13 @@ export class Frame {
   at(x: number, y: number, z: number, yaw = 0) {
     const m = new THREE.Matrix4().makeRotationY(yaw).setPosition(x, y, z);
     return this.basis.clone().multiply(m);
+  }
+
+  /** Child frame at local (x, y, z), turned `yaw` about the local vertical (same convention as `at`). */
+  sub(x: number, y: number, z: number, yaw = 0) {
+    const p = this.p(x, y, z);
+    const f = this.f.clone().multiplyScalar(Math.cos(yaw)).addScaledVector(this.r, Math.sin(yaw));
+    return new Frame(p.x, p.y, p.z, f.x, f.z);
   }
 
   /** Local direction rotated by yaw, for sign faces. */
