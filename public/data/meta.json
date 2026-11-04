@@ -32,7 +32,7 @@
       "heightRes": 2048,
       "heightZoom": 15,
       "imageRes": 4096,
-      "imageZoom": 17
+      "imageZoom": 16
     }
   },
   "heightEncoding": {
@@ -69,6 +69,28 @@
     "town": {
       "min": 1749.395687422003,
       "max": 2191.9922034550264
+    }
+  },
+  "landcover": {
+    "size": 50000,
+    "res": 2048,
+    "classes": {
+      "OTHER": 0,
+      "SHADSCALE": 1,
+      "SAGEBRUSH": 2,
+      "BLACKSAGE": 3,
+      "WASH": 4,
+      "GRASS": 5,
+      "WETLAND": 6,
+      "WATER": 7,
+      "URBAN_OPEN": 8,
+      "URBAN_LOW": 9,
+      "URBAN_MED": 10,
+      "URBAN_HIGH": 11,
+      "PINYON": 12,
+      "ROCK": 13,
+      "FARM": 14,
+      "PLAYA": 15
     }
   }
 }
