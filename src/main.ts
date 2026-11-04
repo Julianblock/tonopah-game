@@ -49,6 +49,7 @@ import { Precipitation } from './weather/precip';
 import { Water } from './world/water';
 import { WaterSurface } from './render/waterSurface';
 import { Ghosts } from './life/ghosts';
+import { LadyInRed } from './life/ladyInRed';
 import { People } from './life/people';
 import { Discoveries } from './ui/discoveries';
 import { Lore, type Egg } from './world/lore';
@@ -172,6 +173,8 @@ async function boot() {
   const graveyard = cemeteryPlans.find((p) => p.name === 'Tonopah Cemetery');
   const ghosts = graveyard ? new Ghosts(graveyard, heightfield) : null;
   if (ghosts) engine.scene.add(ghosts.group);
+  const lady = new LadyInRed(landmarks.mizpah);
+  engine.scene.add(lady.mesh);
   // Mount Butler, one of the dacite plugs of the Miocene Tonopah volcanic field.
   const vent = new THREE.Vector3(-209, heightfield.height(-209, 1975) - 15, 1975);
   const volcano = new VolcanoVision(vent, { x: -300, z: 1700, r: 3200 });
@@ -224,6 +227,7 @@ async function boot() {
     text: 'Pale miners drift between the wooden headboards, carbide lamps swinging, and fade the moment you come close. Seventeen men died in the Tonopah-Belmont fire of 1911, and most of them were buried right here.',
   };
   if (ghosts) ghosts.onSight = () => journal.discover(ghostEgg);
+  lady.onSight = () => lore.reveal('lady-in-red');
   const atlas = lore.atlas();
   const eggs: Egg[] = [
     ...atlas,
@@ -790,6 +794,7 @@ async function boot() {
     wildlife.update(dt, cam.position, actor);
     flocks.setMonth(env.month);
     ghosts?.update(dt, cam, G.uNight.value);
+    lady.update(dt, cam, G.uNight.value);
     people.update(dt, cam.position, G.uNight.value);
     volcano.update(dt, cam, window.innerHeight * engine.pixelRatio);
     landmarks.update(cam.position);
@@ -806,7 +811,7 @@ async function boot() {
         snowCover: G.uSnowCover.value,
       });
     }
-    sound.setFx(underwater ? 1 : 0, ghosts?.presence ?? 0, volcano.level);
+    sound.setFx(underwater ? 1 : 0, Math.max(ghosts?.presence ?? 0, lady.presence), volcano.level);
     flocks.update(dt, cam.position, { x: air.windX, z: air.windZ });
     syncCarCasters();
     G.uHeadOn.value = car.object.visible ? car.headOn : 0;
@@ -828,7 +833,7 @@ async function boot() {
   frame();
   loading.done();
   Object.assign(window, {
-    touch, engine, env, terrain, water, waterSurface, ghosts, people, volcano, journal, tour, showMap, eggs, lore, heightfield, G, player, chase, air, car, driveCam, roadIndex, fences, dust, drive, shadow, precip, cemeteries, cemeteryPlans, controls, menu, hud, places, trees, props, landmarks, lights, traffic, wildlife, flocks, sound, power, grass, roads, motes,
+    touch, engine, env, terrain, water, waterSurface, ghosts, lady, people, volcano, journal, tour, showMap, eggs, lore, heightfield, G, player, chase, air, car, driveCam, roadIndex, fences, dust, drive, shadow, precip, cemeteries, cemeteryPlans, controls, menu, hud, places, trees, props, landmarks, lights, traffic, wildlife, flocks, sound, power, grass, roads, motes,
     inspectView: (a: number, h: number) => ((inspectAngle = a), (inspectHeight = h)),
     /** Renders a frame and returns it as a JPEG data URL (debug capture). */
     snap: (w = 1100, x0 = 0, y0 = 0, cw = 1, ch = 1) => {
