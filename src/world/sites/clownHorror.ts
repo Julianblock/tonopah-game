@@ -235,6 +235,36 @@ function showerRoom(k: Kit, b: Frame) {
   k.box(rf, -1.0, 2.25, -8.6, 0.3, 0.05, 0.3, '#f0f4ff', k.lit(2.5));
 }
 
+/**
+ * 207, the possession room: a crucifix on the wall above a bed gone grey,
+ * candles round the bed, scratches gouged across the headboard wall, a
+ * bishop's purple stole on the chair and the little demon statuette.
+ */
+function exorcistRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 207);
+  const wallL = rf.sub(-RW / 2 + 0.11, 0, -4.3, Math.PI / 2);
+  k.ibox(wallL, -0.95, 1.4, 0.01, 0.05, 0.6, 0.03, '#3a2a1a', 0.5);
+  k.ibox(wallL, -0.95, 1.8, 0.01, 0.3, 0.05, 0.03, '#3a2a1a', 0.5);
+  const wallR = rf.sub(RW / 2 - 0.1, 0, -5.8, -Math.PI / 2);
+  for (let i = 0; i < 7; i++) k.ibox(wallR, -0.6 + i * 0.18, 0.7 + (i % 3) * 0.12, 0.012, 0.02, 0.7, 0.004, '#3a1a10', 0.9, 0.2);
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2;
+    const x = -0.9 + Math.cos(a) * 1.25, z = -4.3 + Math.sin(a) * 1.05;
+    if (x < -1.85) continue;
+    k.cyl(rf, x, 0, z, 0.03, 0.03, 0.18 + (i % 3) * 0.06, '#f4ecd8', k.in(0.6), 6);
+    k.sphere(rf, x, 0.22 + (i % 3) * 0.06, z, 0.015, '#ffb24a', k.lit(6), 4);
+  }
+  k.lamp(rf, -0.9, 0.6, -4.3, 3.5, 0.6, '#ff9a4a');
+  k.ibox(rf, -0.9, 0.62, -4.3, 1.4, 0.012, 1.4, '#c8c8b8', 0.95);
+  for (let i = 0; i < 5; i++) k.ibox(rf, -1.3 + i * 0.18, 0.635, -4.6 + (i % 2) * 0.3, 0.15, 0.003, 0.11, '#6a7a2a', 0.3, i);
+  k.ibox(rf, 0.2, 0.47, -1.4, 0.1, 0.02, 0.45, '#5a1a6a', 0.9, 1.57);
+  const st = rf.sub(1.6, 0.85, -3.8, -Math.PI / 2);
+  k.ibox(st, 0, 0, 0, 0.08, 0.05, 0.08, '#2a2a2a', 0.6);
+  k.geo(st, new THREE.CylinderGeometry(0.03, 0.04, 0.16, 6).translate(0, 0.08, 0), 0, 0.05, 0, '#4a4a3a', k.in(0.7));
+  k.sphere(st, 0, 0.25, 0, 0.035, '#4a4a3a', k.in(0.7), 6);
+  for (const sx of [-1, 1]) k.geo(st, new THREE.BoxGeometry(0.01, 0.1, 0.06).rotateZ(sx * 0.7), sx * 0.05, 0.18, -0.02, '#4a4a3a', k.in(0.7));
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -246,5 +276,6 @@ export function clownHorror(k: Kit, b: Frame) {
   dollRoom(k, b);
   campRoom(k, b);
   showerRoom(k, b);
+  exorcistRoom(k, b);
   k.fill = FILL;
 }
