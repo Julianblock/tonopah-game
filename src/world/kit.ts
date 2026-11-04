@@ -41,6 +41,8 @@ export class Kit {
   /** Room lamps: x, y, z, reach, r, g, b, power. */
   readonly lamps: number[] = [];
   readonly sites: Site[] = [];
+  /** Exact footprints (frame-local rectangles) that nothing else may grow into. */
+  readonly blocks: { fr: Frame; x0: number; x1: number; z0: number; z1: number }[] = [];
   readonly lots: Lot[] = [];
   readonly spots: { x: number; z: number; r: number; n: number }[] = [];
   readonly farSpots: { x: number; z: number; r: number; n: number }[] = [];
@@ -75,6 +77,11 @@ export class Kit {
     this.sites.push({ x: cx, z: cz, radius });
     const ox = cx + fx * off, oz = cz + fz * off;
     return new Frame(ox, y ?? this.hf.height(ox, oz), oz, fx, fz);
+  }
+
+  /** Reserves a frame-local rectangle: trees and props stay out of it. */
+  block(fr: Frame, x0: number, x1: number, z0: number, z1: number) {
+    this.blocks.push({ fr, x0, x1, z0, z1 });
   }
 
   /** Nearest point on the highway and the road's direction there. */
