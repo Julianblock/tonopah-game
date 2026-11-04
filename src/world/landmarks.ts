@@ -13,7 +13,7 @@ import { stationDining, stationFloor, stationHotel, stationPylon, stationShell }
 import { courthouseOffices, courthouseShell, courtroom } from './sites/courthouse';
 import { belvadaLobby, belvadaRooms, belvadaShell } from './sites/belvada';
 import { museumHall, museumShell, museumYard } from './sites/museum';
-import { brewingShell } from './sites/brewing';
+import { brewingHall, brewingShell } from './sites/brewing';
 import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
@@ -90,7 +90,8 @@ export class Landmarks {
     const museum = (this.museum = museumShell(k));
     museumHall(k, museum);
     museumYard(k, museum);
-    this.brewing = brewingShell(k);
+    const brewing = (this.brewing = brewingShell(k));
+    brewingHall(k, brewing);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({

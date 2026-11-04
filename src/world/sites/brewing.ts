@@ -68,3 +68,68 @@ export function brewingShell(k: Kit): Frame {
   for (const x of [-0.9, 0.9]) k.box(smoker, x, 0, 0, 0.08, 0.7, 0.9, '#2a2a28', { fx: FX.METAL });
   return b;
 }
+
+/**
+ * Inside: the bar and its tap wall, long tables under Edison bulbs, and the
+ * brewhouse behind the glass: mash tun, kettle and a row of conical fermenters.
+ */
+export function brewingHall(k: Kit, b: Frame) {
+  k.seed = 101;
+  for (let x = -W / 2 + 0.3; x < W / 2 - 0.3; x += 2) k.box(b, x + 1, 0, -D / 2, 1.98, 0.02, D - 0.6, (Math.round(x) % 4 === 0) ? '#7a7672' : '#726e6a', k.in(0.4));
+  // Bar along the back wall with the tap tower and the chalkboard.
+  const bar = b.sub(-9, 0, -D + 0.3, 0);
+  F.bar(k, bar, 0, 0, 2.2, 10, 0, '#3a2a1e', 1.8);
+  for (let i = 0; i < 12; i++) {
+    const x = -3.3 + i * 0.6;
+    k.cyl(bar, x, 1.15, 2.0, 0.025, 0.025, 0.35, '#c8c8c8', k.in(0.2), 6);
+    k.ibox(bar, x, 1.45, 2.06, 0.06, 0.18, 0.06, ['#d88a2a', '#1a1a1a', '#e8c860', '#8a2a1a', '#c84a6a', '#3a2a1a'][i % 6], 0.5);
+  }
+  k.ibox(bar, 0.3, 1.1, 2.0, 7.6, 0.1, 0.2, '#c8c8c8', 0.2);
+  k.sign(bar, 'tapBoard', 0, 2.9, 0.05, 1.6, 1.0, FX.INTERIOR);
+  // Long tables and benches.
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 2; j++) {
+      const t = b.sub(-14 + i * 4.4, 0, -4 - j * 4.5);
+      k.ibox(t, 0, 0.74, 0, 0.9, 0.06, 3.2, F.WOOD.oak, 0.7);
+      for (const z of [-1.3, 1.3]) k.ibox(t, 0, 0, z, 0.08, 0.74, 0.7, '#1a1a1a', 0.4);
+      for (const s of [-0.7, 0.7]) k.ibox(t, s, 0.44, 0, 0.32, 0.05, 3.0, F.WOOD.oak, 0.7);
+      for (let n = 0; n < 3; n++) {
+        k.cyl(t, 0, H - 1.2 - n * 0.02, -1 + n, 0.06, 0.06, 0.1, '#ffd890', k.lit(2.6), 8);
+        k.cyl(t, 0, H - 1.1, -1 + n, 0.005, 0.005, 1.1, '#1a1a1a', k.in(0.5), 3);
+      }
+      k.lamp(t, 0, H - 1.4, 0, 6, 1.5, '#ffb870');
+    }
+  }
+  // Glass wall to the brewhouse.
+  const glassX = 4.2;
+  for (const z of [-0.3, -4, -8, -12, -15.7]) k.ibox(b, glassX, 0, z, 0.12, H - 0.2, 0.12, '#1a1a1a', 0.4);
+  k.ibox(b, glassX, H - 1.3, -D / 2, 0.12, 0.12, D - 0.6, '#1a1a1a', 0.4);
+  for (const z of [-2, -6, -10, -14]) k.pane(b.sub(glassX, 0, z, Math.PI / 2), 0, 2.35, 0, 3.7, 4.7);
+  k.box(b, glassX, 0, -D / 2, 0.12, 0.3, D - 0.6, '#1a1a1a', k.in(0.4));
+  // Brewhouse: kettles on a platform, fermenters in a row along the window.
+  const bh = b.sub(10.5, 0, -D / 2);
+  for (let x = -6; x <= 6; x += 2) for (let z = -7; z <= 7; z += 2) k.box(bh, x, 0, z, 1.98, 0.02, 1.98, '#9aa0a2', k.in(0.3));
+  k.ibox(bh, -3.5, 0, -4.5, 4.8, 0.9, 3.2, '#4a4e50', 0.4);
+  for (const x of [-4.8, -2.2]) {
+    k.cyl(bh, x, 0.9, -4.5, 0.9, 0.9, 1.8, '#c8ccd0', k.in(0.15), 18);
+    k.geo(bh, new THREE.SphereGeometry(0.9, 18, 6, 0, Math.PI * 2, 0, Math.PI / 2), x, 2.7, -4.5, '#c8ccd0', k.in(0.15));
+    k.cyl(bh, x, 3.5, -4.5, 0.12, 0.12, 1.2, '#c8ccd0', k.in(0.15), 8);
+  }
+  for (let i = 0; i < 5; i++) {
+    const x = -4.4 + i * 2.2, z = 3.6;
+    k.geo(bh, new THREE.ConeGeometry(0.7, 0.9, 16).rotateX(Math.PI), x, 1.05, z, '#d0d4d8', k.in(0.12));
+    k.cyl(bh, x, 1.5, z, 0.7, 0.7, 2.6, '#d0d4d8', k.in(0.12), 16);
+    k.geo(bh, new THREE.SphereGeometry(0.7, 16, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.4, 1), x, 4.1, z, '#d0d4d8', k.in(0.12));
+    for (let a = 0; a < 3; a++) {
+      const ang = (a / 3) * Math.PI * 2;
+      k.cyl(bh, x + Math.cos(ang) * 0.6, 0, z + Math.sin(ang) * 0.6, 0.04, 0.04, 1.5, '#a0a4a8', k.in(0.2), 6);
+    }
+    k.ibox(bh, x, 1.8, z + 0.71, 0.4, 0.3, 0.02, '#e8e4d8', 0.6);
+  }
+  k.ibox(bh, 4.6, 0, -5.5, 1.2, 1.2, 1.2, '#2a5a8a', 0.5);
+  for (let i = 0; i < 10; i++) k.cyl(bh, 3.6 + (i % 5) * 0.55, 0 + Math.floor(i / 5) * 0.62, -2.5, 0.27, 0.27, 0.6, '#b8bcc0', k.in(0.2), 12);
+  for (const z of [-4, 2]) {
+    k.lamp(bh, 0, H - 0.8, z, 7, 1.2, '#e8f0ff');
+    k.box(bh, 0, H - 0.3, z, 4, 0.06, 0.3, '#f4f8ff', k.lit(2.4));
+  }
+}
