@@ -173,7 +173,7 @@ out geom;`,
   const town = await overpass(
     `[out:json][timeout:300];
 (
-  way["highway"~"^(service|footway|path|steps|pedestrian)$"](${tbox});
+  way["highway"="service"](${tbox});
   way["building"](${tbox});
   way["man_made"](${tbox});
   way["landuse"~"^(industrial|quarry|brownfield)$"](${tbox});
