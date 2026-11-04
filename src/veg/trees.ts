@@ -252,6 +252,8 @@ export class Trees {
     private roads?: RoadIndex,
     private planted: PlantedTree[] = [],
     private water?: { depthAt(x: number, z: number): number; sample(x: number, z: number): { mask: number; depth: number } },
+    /** True where a hand-built landmark stands; imagery plants there are dropped. */
+    private clear?: (x: number, z: number) => boolean,
   ) {
     this.hf = hf;
     this.material = new THREE.ShaderMaterial({
@@ -491,9 +493,10 @@ export class Trees {
           tz = road.z + nz * clear;
         }
       }
+      if (this.clear?.(tx, tz)) continue;
       add(tx, tz, sp, seed);
     }
-    this.planted.forEach((t, k) => add(t.x, t.z, t.sp, hash(k * 3.17 + 0.5), t.r, t.h));
+    this.planted.forEach((t, k) => !this.clear?.(t.x, t.z) && add(t.x, t.z, t.sp, hash(k * 3.17 + 0.5), t.r, t.h));
     for (let tj = 0; tj < tilesN; tj++) {
       for (let ti = 0; ti < tilesN; ti++) {
         const l = lists[tj * tilesN + ti];
