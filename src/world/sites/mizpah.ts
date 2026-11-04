@@ -249,3 +249,63 @@ export function mizpahLobby(k: Kit, b: Frame) {
   F.slotBank(k, b, 4.6, 0, -17.6, 4, Math.PI / 2, 7);
   F.slotBank(k, b, 1.6, 0, -18.4, 3, Math.PI / 2, 19);
 }
+
+/**
+ * The Jack Dempsey Room behind the lobby: a long mahogany bar with a mirrored
+ * back bar, pendant globes, bentwood tables, booths along the north wall and
+ * fight photos of the Manassa Mauler, who once bounced drunks in this camp.
+ */
+export function mizpahDempsey(k: Kit, b: Frame) {
+  k.seed = 23;
+  const z0 = -20.4, z1 = -D + T;
+  const zc = (z0 + z1) / 2, len = z0 - z1;
+  // Plank floor and a darker wainscot.
+  for (let x = -7.4; x < 7.4; x += 0.16) k.ibox(b, x + 0.08, 0, zc, 0.15, 0.01, len, (Math.round(x / 0.16) % 3 === 0) ? '#6a4226' : '#7a4e2c', 0.5);
+  k.ibox(b, -7.44, 0, zc, 0.06, 1.2, len, '#3a160c', 0.4);
+  k.ibox(b, 0, 0, z1 + 0.06, 15, 1.2, 0.06, '#3a160c', 0.4);
+  F.tinCeiling(k, b, 0, G0 - 0.31, zc, 15, len, '#b8a888', 0.9);
+
+  // The bar along the Brougher wall, its back bar against the windows' pier.
+  F.bar(k, b, 4.9, 0, zc - 0.3, 9.4, -Math.PI / 2, F.WOOD.mahogany, 1.75);
+  const back = b.sub(6.75, 0, zc - 0.3, -Math.PI / 2);
+  k.sign(back, 'dempsey', 0, 3.6, -0.2, 0.5, 0.6);
+  for (let i = 0; i < 5; i++) {
+    const z = zc - 4 + i * 1.9;
+    k.cyl(b, 4.6, G0 - 1.6, z, 0.01, 0.01, 1.3, '#1a1a1a', k.in(0.4), 4);
+    k.sphere(b, 4.6, G0 - 1.75, z, 0.18, '#ffe0a8', k.lit(3.5), 10);
+    k.lamp(b, 4.6, G0 - 1.9, z, 6.5, 1.3);
+  }
+  // Brass spittoons along the foot rail, as in 1907.
+  for (const z of [zc - 3, zc + 1.5]) k.cyl(b, 3.95, 0, z, 0.16, 0.12, 0.22, F.BRASS, k.in(0.25), 10);
+
+  // Bentwood tables down the middle, booths along the north wall.
+  for (let i = 0; i < 3; i++) {
+    const z = z0 - 2.2 - i * 3.6;
+    F.roundTable(k, b, 0.3, 0, z, 0.45, F.WOOD.walnut, 0.74);
+    for (let c = 0; c < 4; c++) {
+      const a = (c / 4) * Math.PI * 2 + 0.4;
+      F.chair(k, b, 0.3 + Math.cos(a) * 0.85, 0, z + Math.sin(a) * 0.85, Math.PI / 2 - a + Math.PI, '#5a3418', '#3a1a10');
+    }
+  }
+  for (let i = 0; i < 4; i++) {
+    const z = z0 - 1.6 - i * 2.75;
+    const booth = b.sub(-6.3, 0, z, Math.PI / 2);
+    k.ibox(booth, 0, 0, -0.9, 1.6, 0.45, 0.55, '#5a1418', 0.9);
+    k.ibox(booth, 0, 0.45, -1.12, 1.6, 0.75, 0.12, '#5a1418', 0.9);
+    k.ibox(booth, 0, 0, 0.9, 1.6, 0.45, 0.55, '#5a1418', 0.9);
+    k.ibox(booth, 0, 0.45, 1.12, 1.6, 0.75, 0.12, '#5a1418', 0.9);
+    F.table(k, booth, 0, 0, 0, 1.3, 0.8, '#2a120a', '#1a0a06', 0.74);
+    k.sphere(booth, 0, 0.82, 0, 0.06, '#ffd890', k.lit(2.5), 6);
+    k.lamp(booth, 0, 1.3, 0, 3.4, 0.8);
+  }
+  // Fight photos and a pair of old gloves hung on the wall.
+  for (let i = 0; i < 6; i++) F.picture(k, b, -7.36, 2.2 + (i % 2) * 0.9, z0 - 1.5 - i * 1.8, 0.6, 0.75, Math.PI / 2, 60 + i, '#2a1a10');
+  for (const dx of [-0.18, 0.18]) k.sphere(b, -7.2, 3.4, z1 + 2 + dx, 0.13, '#8a1010', k.in(0.6), 8);
+  k.ibox(b, -7.3, 3.5, z1 + 2, 0.04, 0.4, 0.4, '#1a1a1a', 0.6);
+  // A dartboard by the back door, and a jukebox glowing in the corner.
+  k.cyl(b, -2.5, 1.5, z1 + 0.08, 0.23, 0.23, 0.04, '#1a1a1a', k.in(0.7), 16);
+  const juke = b.sub(-6.6, 0, z1 + 0.6, 0);
+  k.ibox(juke, 0, 0, 0, 0.9, 1.1, 0.6, '#4a2010', 0.4);
+  k.geo(juke, new THREE.CylinderGeometry(0.45, 0.45, 0.6, 16, 1, false, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2), 0, 1.1, 0, '#ffb040', k.lit(3.5));
+  k.lamp(juke, 0, 1.2, 0.6, 3, 0.6, '#ffa860');
+}
