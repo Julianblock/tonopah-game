@@ -10,6 +10,19 @@ import type { Hole, Kit } from '../kit';
 const STUCCO = '#f2ece0';
 const RED = '#d81a1a';
 const PANEL = '#f4e8b8';
+const DOORS = ['#d81a1a', '#2a5ad0', '#f0c828', '#2aa84a', '#e86ab8', '#ff8a1a'];
+const RAIL = '#2a5ad0';
+
+/** Room block: 14 rooms a floor, two floors, doors facing east off the cemetery fence. */
+export const RL = 56;
+export const RD = 10;
+export const RH = 2.9;
+export const ROOMS = 14;
+export const RW = RL / ROOMS;
+/** Rooms whose doors stand open: the horror-themed ones and a couple of others. */
+export const OPEN = new Set([102, 104, 106, 108, 110, 112, 201, 204, 207, 209, 210, 213]);
+/** Centre of room i (0 = south end) along the block. */
+export const roomX = (i: number) => -RL / 2 + RW * (i + 0.5);
 
 /** Office frame: x across the highway face, z out toward US-95, y up from the floor. */
 export const OW = 12.1;
@@ -165,3 +178,96 @@ export function clownCollection(k: Kit, b: Frame) {
   F.clown(k, b, -1.7, 0, -2.2, 5.6, 3, Math.PI * 0.85);
   return n;
 }
+
+/**
+ * The room block along the cemetery fence: white stucco, a door of every
+ * circus colour, a blue-railed walkway upstairs with stairs at both ends, a
+ * brown shingle mansard, and the giant clown painted on the end wall.
+ * Frame: x along the block (+x toward the highway), z out the room doors.
+ */
+export function clownWing(k: Kit): Frame {
+  k.seed = 43;
+  const fx = 0.892, fz = 0.452;
+  const fr = k.frame(-720.2 + fx * (RD / 2), -420.8 + fz * (RD / 2), fx, fz, 34);
+  const [lo, hi] = k.footRange(fr, -RL / 2 - 2, RL / 2 + 2, -RD, 13);
+  const base = Math.max(0.2, hi + 0.15);
+  const b = fr.sub(0, base, 0);
+  k.box(b, 0, lo - base - 0.4, -RD / 2 + 1, RL + 0.4, base - lo + 0.4, RD + 2.2, '#b8b0a4', { rough: 0.95 });
+  const top = RH * 2 + 0.6;
+
+  for (let fl = 0; fl < 2; fl++) {
+    const y = fl * RH;
+    const holes: Hole[] = [];
+    for (let i = 0; i < ROOMS; i++) {
+      const x = roomX(i);
+      holes.push({ x: x - 1.05, y: y, w: 0.95, h: 2.1, trim: '#f8f8f4' });
+      holes.push({ x: x + 0.75, y: y + 0.9, w: 1.5, h: 1.1, glass: true, trim: '#f8f8f4' });
+    }
+    k.wall(b, -RL / 2, RL / 2, 0, y - (fl ? 0 : 0.1), y + RH, 0.3, STUCCO, PANEL, holes, { rough: 0.9 });
+    // High bathroom windows on the cemetery side.
+    const back: Hole[] = [];
+    for (let i = 0; i < ROOMS; i++) back.push({ x: -roomX(i) + 0.9, y: y + 1.7, w: 0.6, h: 0.5, glass: true });
+    const bk = b.sub(0, 0, -RD, Math.PI);
+    k.wall(bk, -RL / 2, RL / 2, 0, y - (fl ? 0 : 0.1), y + RH, 0.3, STUCCO, '#e8f0f0', back, { rough: 0.9 });
+  }
+  k.box(b, 0, RH * 2, -RD / 2, RL, top - RH * 2, 0.3, STUCCO, { rough: 0.9 });
+  for (const s of [-1, 1] as const) {
+    const end = k.side(b, (s * RL) / 2, -RD / 2, s);
+    k.wall(end, -RD / 2 + 0.3, RD / 2 - 0.3, 0, -0.1, top, 0.3, STUCCO, PANEL, [], { rough: 0.9 });
+  }
+  // Floors and the roof.
+  k.slab(b, 0, 0.02, -RD / 2, RL - 0.4, RD - 0.6, '#8a5a3a', null, 0.1);
+  k.slab(b, 0, RH, -RD / 2, RL - 0.4, RD - 0.6, '#8a5a3a', '#ece8de', 0.3);
+  k.slab(b, 0, RH * 2 + 0.3, -RD / 2, RL + 0.6, RD + 0.6, '#5a5450', '#ece8de', 0.3);
+  // Brown shingle mansard round the roof edge, deep over the walkway.
+  for (const [cx, cz, w, d, tilt] of [[0, 2.0, RL + 3, 1.4, 0.55], [0, -RD - 0.2, RL + 0.6, 0.9, -0.55]] as const) {
+    const g = new THREE.BoxGeometry(w, 0.08, d).translate(0, 0, (Math.sign(tilt) * d) / 2);
+    k.s.add(g, b.at(cx, RH * 2 + 0.35, cz - (Math.sign(tilt) * d) / 2).multiply(new THREE.Matrix4().makeRotationX(tilt)), '#5a3a26', { rough: 0.95 }, k.seed);
+  }
+  for (let x = -RL / 2 - 1.5; x < RL / 2 + 1.5; x += 0.5) k.box(b, x, RH * 2 + 0.36, 2.2, 0.48, 0.02, 0.05, '#4a2e1e', { rough: 1 });
+
+  // Upstairs walkway on posts, blue rails, landings at the ends for the stairs.
+  k.box(b, 0, RH - 0.25, 1.0, RL + 4.2, 0.25, 2.0, '#c8c0b4', { rough: 0.9 });
+  k.box(b, 0, RH - 0.01, 1.0, RL + 4.2, 0.02, 2.0, '#9a3a2a', { rough: 0.95 });
+  for (let x = -RL / 2 - 2; x <= RL / 2 + 2.01; x += RW) {
+    k.box(b, x, 0, 1.9, 0.18, RH - 0.25, 0.18, '#f8f8f4', { rough: 0.8 });
+    k.box(b, x, RH, 1.9, 0.12, RH + 0.35, 0.12, '#f8f8f4', { rough: 0.8 });
+  }
+  for (let x = -RL / 2 - 2; x < RL / 2 + 2; x += 0.14) k.box(b, x, RH, 1.96, 0.03, 0.95, 0.03, RAIL, { rough: 0.4, fx: FX.METAL });
+  for (const y of [RH + 0.95, RH + 0.1]) k.box(b, 0, y, 1.96, RL + 4.1, 0.06, 0.08, RAIL, { rough: 0.4, fx: FX.METAL });
+  for (const s of [-1, 1]) {
+    const steps = Math.round(RH / 0.18);
+    k.stairs(b, s * (RL / 2 + 1.2), 0, 2.0 + steps * 0.28, 1.2, RH, steps, '#b8b0a4', '#c8c0b4', 0.28, 0, RAIL);
+  }
+  // A door of every colour, a few left ajar; a walkway light over each.
+  for (let fl = 0; fl < 2; fl++) {
+    for (let i = 0; i < ROOMS; i++) {
+      const x = roomX(i) - 1.05;
+      const num = (fl + 1) * 100 + i + 1;
+      const col = DOORS[(i + fl * 3) % DOORS.length];
+      if (OPEN.has(num)) {
+        const a = 1.15;
+        k.box(b, x - 0.465 + Math.cos(a) * 0.46, fl * RH, -0.15 - Math.sin(a) * 0.46, 0.92, 2.08, 0.05, col, { rough: 0.5 }, a);
+      } else {
+        k.box(b, x, fl * RH, -0.15, 0.92, 2.08, 0.05, col, { rough: 0.5 });
+        k.sphere(b, x + 0.34, fl * RH + 1.0, -0.1, 0.035, '#c8c8c8', { fx: FX.METAL }, 6);
+      }
+      k.box(b, x, fl * RH + 1.65, 0.02, 0.22, 0.09, 0.02, '#c49a4a', { fx: FX.METAL });
+      k.box(b, x + 0.75, fl * RH + 2.35, 0.08, 0.2, 0.25, 0.12, '#fff4d8', { glow: 1.8 });
+      k.light(b.p(x + 0.75, fl * RH + 2.35, 0.3), 1, 0.85, 0.6, 0.5);
+    }
+  }
+  // The giant clown on the highway end wall.
+  const mural = k.side(b, RL / 2 + 0.01, -RD / 2, 1);
+  k.sign(mural, 'clownMural', 0, top / 2, 0.02, top - 0.3, 0.15);
+  k.light(mural.p(0, 0.3, 3), 1, 0.85, 0.6, 1.4);
+  // Parking along the doors.
+  k.box(b, 0, lo - base - 0.3, 7.5, RL + 6, base - lo + 0.1, 11, '#b8b0a4', { rough: 0.95 });
+  k.box(b, 0, -0.2, 7.5, RL + 6, 0.2, 11, '#3a3a3c', { rough: 0.95 });
+  for (let i = 0; i <= ROOMS; i++) k.box(b, -RL / 2 + i * RW, -0.0, 9, 0.12, 0.01, 5, '#e8e8e0', { rough: 0.9 });
+  k.lotLight(b, -RL / 4, 12.5);
+  k.lotLight(b, RL / 4, 12.5);
+  k.spot(b, 0, 4, 20, 3);
+  return b;
+}
+
