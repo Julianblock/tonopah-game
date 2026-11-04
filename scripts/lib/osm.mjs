@@ -167,6 +167,21 @@ out geom;`,
   );
   json.elements.push(...extra.elements);
 
+  // Highways out to Goldfield, Manhattan and Crescent Dunes, with the towns and peaks on the way.
+  const wb = regionBounds(92000);
+  const wbox = `${wb.south},${wb.west},${wb.north},${wb.east}`;
+  const valley = await overpass(
+    `[out:json][timeout:300];
+(
+  way["highway"~"^(motorway|trunk|primary|secondary|tertiary)(_link)?$"](${wbox});
+  node["place"~"^(city|town|village|hamlet|locality)$"](${wbox});
+  node["natural"="peak"](${wbox});
+);
+out geom;`,
+    path.join(cacheDir, 'osm_valley.json'),
+  );
+  json.elements.push(...valley.elements);
+
   // Every alley, lot, shed and headframe in town itself.
   const tb = regionBounds(6000, 200, 300);
   const tbox = `${tb.south},${tb.west},${tb.north},${tb.east}`;
