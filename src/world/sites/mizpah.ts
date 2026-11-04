@@ -417,3 +417,62 @@ export function mizpahFloors(k: Kit, b: Frame) {
     k.ibox(fb, 0, 0.1, -D + T + 0.12, 1.0, 0.7, 0.14, '#9a9a96', 0.4);
   }
 }
+
+const SPREADS = ['#6a1a22', '#2a3a5a', '#3a4a2a', '#7a5a2a', '#5a2a4a', '#e8e0d0'];
+const PAPERS = ['#d8c8a0', '#c8b890', '#d0c0b0', '#b8c0a8', '#d8b8a8'];
+
+/**
+ * Every guest room furnished as the restoration left them: a brass or walnut
+ * bed under a landscape, nightstand lamp, dresser and mirror, wardrobe, a
+ * wingback by the lace-curtained windows, steam radiators ticking underneath.
+ */
+export function mizpahRooms(k: Kit, b: Frame) {
+  k.seed = 26;
+  for (let fl = 1; fl < 5; fl++) {
+    for (let s = 0; s < SLOTS; s++) {
+      room(k, b, fl, 1, s, (fl + 1) * 100 + s + 1);
+      if (s !== 1) room(k, b, fl, -1, s, (fl + 1) * 100 + 6 + (s > 1 ? s - 1 : s));
+    }
+  }
+}
+
+/** One guest room; side 1 is the Brougher side, -1 the north side. Returns its frame. */
+function room(k: Kit, b: Frame, fl: number, side: 1 | -1, s: number, num: number) {
+  const y = level(fl);
+  const rf = b.sub(side * 4.25, y, slotZ(s), (side * Math.PI) / 2);
+  const m = side;
+  const h = (n: number) => Math.abs(Math.sin(num * 12.9898 + n * 78.233) * 43758.5453) % 1;
+  const wood = h(1) < 0.3 ? F.BRASS : h(1) < 0.65 ? F.WOOD.walnut : F.WOOD.oak;
+  const paper = PAPERS[Math.floor(h(2) * PAPERS.length)];
+  // Wallpaper skin on the side walls with a picture rail; floorboards and a rug.
+  for (const x of [-3.12, 3.12]) {
+    k.ibox(rf, x, 0, 0, 0.02, FH - 0.3, 6.3, paper, 0.9);
+    k.ibox(rf, x - Math.sign(x) * 0.02, 2.45, 0, 0.03, 0.05, 6.3, F.WOOD.walnut, 0.5);
+  }
+  k.ibox(rf, 0, 0, 0, 6.3, 0.01, 6.3, '#7a5234', 0.5);
+  F.rug(k, rf, 0.2 * m, 0.01, 0.6, 2.8, 3.2, ['#5a1a1a', '#1a2a4a', '#3a2a1a', '#4a3a2a'][Math.floor(h(3) * 4)], '#c8a060');
+  // Bed against the side wall away from the door.
+  const bedYaw = m > 0 ? -Math.PI / 2 : Math.PI / 2;
+  F.bed(k, rf, 2.0 * m, 0, 0.4, bedYaw, SPREADS[Math.floor(h(4) * SPREADS.length)], wood === F.BRASS ? '#b8903a' : wood, h(5) < 0.5 ? 1.5 : 1.35);
+  F.nightstand(k, rf, 2.85 * m, 0, 1.75, bedYaw, F.WOOD.walnut, '#f0d8a8', true);
+  F.nightstand(k, rf, 2.85 * m, 0, -0.95, bedYaw, F.WOOD.walnut, '#f0d8a8', false);
+  F.picture(k, rf, 3.1 * m, 2.2, 0.4, 1.0, 0.7, bedYaw, num, '#8a6a2a');
+  F.dresser(k, rf, -2.85 * m, 0, 0.9, -bedYaw);
+  F.wardrobe(k, rf, 0.9 * m, 0, -2.75, 0);
+  F.armchair(k, rf, -1.9 * m, 0, 2.4, Math.PI - m * 0.6, ['#5a1a1a', '#2a3a2a', '#3a2a4a'][Math.floor(h(6) * 3)]);
+  F.roundTable(k, rf, -0.9 * m, 0, 2.6, 0.32, F.WOOD.walnut, 0.65);
+  // Radiators and lace curtains at both windows.
+  for (const wx of [-1.6, 1.6]) {
+    const rad = rf.sub(wx, 0, 2.95, Math.PI);
+    for (let i = 0; i < 9; i++) k.ibox(rad, -0.36 + i * 0.09, 0.08, 0, 0.06, 0.62, 0.16, '#a8a6a0', 0.4);
+    for (const cx of [-0.68, 0.68]) k.ibox(rf, wx + cx, 0.7, 3.0, 0.32, 2.1, 0.04, '#f0ece0', 0.95);
+    k.ibox(rf, wx, 2.85, 3.0, 1.7, 0.06, 0.06, F.BRASS, 0.3);
+  }
+  // Ceiling rose and a glass shade.
+  k.cyl(rf, 0, FH - 0.36, 0.3, 0.22, 0.22, 0.04, '#e8e0cc', k.in(0.6), 12);
+  k.sphere(rf, 0, FH - 0.6, 0.3, 0.16, '#fff4dc', k.lit(2.6), 10);
+  k.lamp(rf, 0, FH - 0.75, 0.3, 6, 0.9);
+  // Number on the inside of the door.
+  k.ibox(rf, -1.8 * m, 1.6, -3.1, 0.2, 0.1, 0.02, F.BRASS, 0.25);
+  return rf;
+}
