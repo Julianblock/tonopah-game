@@ -24,7 +24,7 @@ export interface Site {
 }
 
 /** Interior surfaces default to a soft fill so rooms never go pitch black between lamps. */
-const FILL = 0.35;
+const FILL = 0.5;
 
 /**
  * Shared toolkit for the hand-built landmarks: solids, sign faces, window glass,
