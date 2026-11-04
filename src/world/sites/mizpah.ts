@@ -37,6 +37,7 @@ export function mizpahShell(k: Kit): Frame {
   const [lo, hi] = k.footRange(fr, -W / 2, W / 2, -D, 0);
   const base = Math.max(0.25, hi + 0.15);
   const b = fr.sub(0, base, 0);
+  k.block(b, -W / 2 - 1, W / 2 + 1, -D - 1, 6.5);
 
   // Sandstone foundation down to the lowest ground, and steps up from the sidewalk.
   k.box(b, 0, lo - base - 0.5, -D / 2, W + 0.3, base - lo + 0.5, D + 0.3, STONE, { rough: 0.95 });
