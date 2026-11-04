@@ -201,6 +201,40 @@ function campRoom(k: Kit, b: Frame) {
   k.lamp(lan, 0, 0.3, 0.2, 3.5, 0.5, '#ffb060');
 }
 
+/**
+ * 204, the roadside-motel room: a shower curtain pulled across the tub, a
+ * knife on the bathroom floor, stuffed birds glaring from every shelf, and
+ * Mother's rocking chair in the corner.
+ */
+function showerRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 204);
+  for (let i = 0; i < 9; i++) k.ibox(rf, -1.85 + i * 0.17, 0.58, -8.85, 0.17, 1.4, 0.015, i % 2 ? '#f0f0ec' : '#e4e8e8', 0.6, 0.15 * ((i % 2) * 2 - 1));
+  k.ibox(rf, -1.15, 2.0, -8.88, 1.6, 0.03, 0.03, '#c8c8c8', 0.2);
+  const kn = rf.sub(-0.2, 0.012, -8.4, 2.2);
+  k.ibox(kn, 0, 0, 0.12, 0.04, 0.006, 0.24, '#d8dce0', 0.1);
+  k.ibox(kn, 0, 0, -0.06, 0.035, 0.02, 0.12, '#1a1210', 0.6);
+  const bird = (x: number, y: number, z: number, yaw: number, s: number) => {
+    const f = rf.sub(x, y, z, yaw);
+    k.geo(f, new THREE.SphereGeometry(0.08 * s, 8, 6).scale(0.8, 1, 1.3), 0, 0.08 * s, 0, '#2a2420', k.in(0.8));
+    k.sphere(f, 0, 0.19 * s, 0.07 * s, 0.045 * s, '#2a2420', k.in(0.8), 6);
+    k.geo(f, new THREE.ConeGeometry(0.015 * s, 0.06 * s, 4).rotateX(Math.PI / 2), 0, 0.19 * s, 0.13 * s, '#c8a040', k.in(0.4));
+    for (const sx of [-0.02, 0.02]) k.sphere(f, sx * s, 0.2 * s, 0.105 * s, 0.008 * s, '#ffd040', k.lit(2), 4);
+    for (const sx of [-1, 1]) k.geo(f, new THREE.BoxGeometry(0.01, 0.06 * s, 0.22 * s).rotateZ(sx * 0.9), sx * 0.08 * s, 0.14 * s, -0.02 * s, '#1a1612', k.in(0.8));
+  };
+  for (let i = 0; i < 4; i++) bird(RW / 2 - 0.2, 1.78, -4.85 + i * 0.35, -Math.PI / 2 + (i - 1.5) * 0.3, 1.4);
+  bird(1.6, 0.85, -3.8, -Math.PI / 2 - 0.4, 2.2);
+  bird(-1.65, 0.6, -5.45, Math.PI / 3, 1.6);
+  const rock = rf.sub(1.2, 0, -6.6, Math.PI * 0.85);
+  for (const sx of [-0.25, 0.25]) k.geo(rock, new THREE.TorusGeometry(0.5, 0.02, 4, 12, Math.PI / 2).rotateY(Math.PI / 2).rotateX(Math.PI), sx, 0.5, 0.1, F.WOOD.walnut, k.in(0.5));
+  k.ibox(rock, 0, 0.42, 0, 0.5, 0.04, 0.45, F.WOOD.walnut, 0.5);
+  k.ibox(rock, 0, 0.45, -0.22, 0.5, 0.75, 0.04, F.WOOD.walnut, 0.5);
+  k.geo(rock, new THREE.ConeGeometry(0.2, 0.55, 8).translate(0, 0.27, 0), 0, 0.45, -0.05, '#3a3a40', k.in(0.9));
+  k.sphere(rock, 0, 1.06, -0.05, 0.1, '#6a5a48', k.in(0.9), 8);
+  k.sphere(rock, 0, 1.1, -0.08, 0.1, '#b8b4a8', k.in(0.95), 8);
+  k.lamp(rf, -1.0, 1.9, -8.5, 3, 0.5, '#e8f0ff');
+  k.box(rf, -1.0, 2.25, -8.6, 0.3, 0.05, 0.3, '#f0f4ff', k.lit(2.5));
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -211,5 +245,6 @@ export function clownHorror(k: Kit, b: Frame) {
   staticRoom(k, b);
   dollRoom(k, b);
   campRoom(k, b);
+  showerRoom(k, b);
   k.fill = FILL;
 }
