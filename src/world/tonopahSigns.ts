@@ -619,6 +619,42 @@ export const TONOPAH_SIGNS: SignSpec[] = [
     },
   },
   {
+    name: 'brewingSign',
+    w: 800,
+    h: 260,
+    draw(g, w, h) {
+      g.fillStyle = '#1a1a1a';
+      g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#d88a2a';
+      g.lineWidth = 8;
+      g.strokeRect(12, 12, w - 24, h - 24);
+      neon(g, 'TONOPAH', w / 2, h * 0.32, w * 0.8, (p) => `bold ${p}px ${SERIF}`, h * 0.3, '#ffb050');
+      neon(g, 'BREWING CO.', w / 2, h * 0.64, w * 0.8, (p) => `bold ${p}px ${SANS}`, h * 0.22, '#ffe8c0');
+      g.fillStyle = '#d88a2a';
+      fitText(g, 'CRAFT BEER · BBQ', w / 2, h * 0.86, w * 0.5, (p) => `bold ${p}px ${SANS}`, h * 0.1);
+    },
+  },
+  {
+    // Chalkboard of what's on tap behind the bar.
+    name: 'tapBoard',
+    w: 500,
+    h: 300,
+    draw(g, w, h) {
+      g.fillStyle = '#1e2420';
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#e8e4d8';
+      fitText(g, 'ON TAP', w / 2, 36, w * 0.5, (p) => `bold ${p}px ${SANS}`, 34);
+      ['MIZPAH MINE IPA', 'CLOWN MOTEL STOUT', 'DESERT QUEEN BLONDE', 'BIG BILL RED ALE', 'LADY IN RED SOUR', 'JIM BUTLER PORTER'].forEach((t, i) => {
+        g.textAlign = 'left';
+        g.font = `bold 24px ${SANS}`;
+        g.fillText(t, 30, 86 + i * 36);
+        g.textAlign = 'right';
+        g.fillText(`$${6 + (i % 3)}`, w - 30, 86 + i * 36);
+      });
+      g.textAlign = 'center';
+    },
+  },
+  {
     // The county seal over the judge's bench.
     name: 'nyeSeal',
     w: 300,
