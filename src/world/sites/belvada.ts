@@ -1,4 +1,6 @@
+import * as THREE from 'three';
 import { type Frame, FX } from '../builders';
+import * as F from '../furniture';
 import type { Hole, Kit } from '../kit';
 
 // The Belvada: the State Bank & Trust building of 1906, four storeys of red brick
@@ -75,4 +77,61 @@ export function belvadaShell(k: Kit): Frame {
     k.light(b.p(s * 1.5, 2.9, 0.4), 1, 0.9, 0.7, 2);
   }
   return b;
+}
+
+/**
+ * The banking hall as the hotel lobby bar: marble floor, the tellers' cages now
+ * the back bar, leather club chairs, and the walk-in vault with its round door
+ * swung open.
+ */
+export function belvadaLobby(k: Kit, b: Frame) {
+  k.seed = 81;
+  for (let x = -W / 2 + 0.4; x < W / 2 - 0.4; x += 0.8) {
+    for (let z = -0.4; z > -D + 0.4; z -= 0.8) {
+      const odd = (Math.round(x / 0.8) + Math.round(z / 0.8)) % 2 !== 0;
+      k.box(b, x + 0.4, 0, z - 0.4, 0.79, 0.02, 0.79, odd ? '#e8e4dc' : '#2a2a2a', k.in(0.25));
+    }
+  }
+  F.tinCeiling(k, b, 0, LV[1] - 0.32, -D / 2, W - 0.6, D - 0.6, '#d8ccac');
+  // Bar along the east wall behind the old brass teller grilles.
+  const bar = k.side(b, W / 2 - 0.3, -D / 2, 1).sub(0, 0, -0.1, Math.PI);
+  F.bar(k, bar, 2, 0, 2.0, 12, 0, F.WOOD.mahogany, 1.6);
+  for (let x = -3.6; x <= 7.6; x += 0.1) k.box(bar, x, 1.2, 2.0, 0.015, 1.1, 0.015, F.BRASS, k.in(0.3));
+  for (const x of [-3.6, 0.2, 4, 7.8]) k.ibox(bar, x, 1.2, 2.0, 0.2, 1.2, 0.2, F.WOOD.mahogany, 0.4);
+  k.ibox(bar, 2, 2.4, 2.0, 11.6, 0.2, 0.24, F.WOOD.mahogany, 0.4);
+  // Club chairs round low tables under the arched windows.
+  for (const z of [-4.5, -10.5, -16.5]) {
+    const t = b.sub(-W / 2 + 3, 0, z);
+    F.roundTable(k, t, 0, 0, 0, 0.45, F.WOOD.walnut, 0.5);
+    F.armchair(k, t, -0.9, 0, 0, Math.PI / 2, '#5a2a18');
+    F.armchair(k, t, 0.9, 0, 0, -Math.PI / 2, '#5a2a18');
+    F.armchair(k, t, 0, 0, 0.9, Math.PI, '#5a2a18');
+    k.lamp(t, 0, 2.5, 0, 4, 0.7);
+  }
+  F.rug(k, b, -W / 2 + 3, 0.02, -10.5, 3.6, 15, '#4a1a14', '#c49a4a');
+  for (const z of [-3, -9, -15, -21]) F.chandelier(k, b, 0, LV[1] - 1.1, z, 0.6, 8, 7, 1.2);
+  F.piano(k, b, -W / 2 + 2.2, 0, -21.5, Math.PI / 2);
+  // Front desk and the vault at the back.
+  F.bar(k, b.sub(-2, 0, -24, 0), 0, 0, 0, 4, 0, F.WOOD.walnut, 0.8, false);
+  const v = b.sub(3, 0, -D + 0.3);
+  k.ibox(v, 0, 0, 1.0, 4.4, 3.2, 2.0, '#4a4a46', 0.4);
+  k.ibox(v, 0, 0, 2.02, 2.0, 2.4, 0.04, '#0a0a0a', 0.9);
+  k.ibox(v, 0, 2.5, 2.02, 2.6, 0.5, 0.06, F.BRASS, 0.3);
+  // The round door, a foot of steel, swung back on its hinge.
+  const door = v.sub(1.2, 1.2, 2.4, 1.9);
+  k.geo(door, new THREE.CylinderGeometry(1.15, 1.15, 0.45, 28).rotateX(Math.PI / 2), -1.15, 0, 0, '#8a8a84', k.in(0.3));
+  k.geo(door, new THREE.TorusGeometry(0.5, 0.04, 6, 20), -1.15, 0, 0.3, F.BRASS, k.in(0.3));
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    k.box(door, -1.15 + Math.cos(a) * 0.25, Math.sin(a) * 0.25 - 0.02, 0.28, 0.04, 0.04, 0.08, F.BRASS, k.in(0.3));
+  }
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    k.cyl(door.sub(-1.15 + Math.cos(a) * 0.95, Math.sin(a) * 0.95, 0.24, 0), 0, 0, 0, 0.06, 0.06, 0.05, '#c8c8c0', k.in(0.3), 8);
+  }
+  k.ibox(door, 0, -1.2, -0.2, 0.25, 2.4, 0.4, '#5a5a56', 0.4);
+  // Inside: safe-deposit boxes floor to ceiling.
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 10; c++) k.box(v, -1.95 + c * 0.39 + 0.2, 0.2 + r * 0.36, 0.1, 0.36, 0.33, 0.02, (r + c) % 3 ? '#b8a878' : '#a89868', k.in(0.3));
+  k.lamp(v, 0, 2.2, 1.8, 4, 0.6);
+  k.lamp(b, 0, 3.8, -6, 8, 0.8);
 }
