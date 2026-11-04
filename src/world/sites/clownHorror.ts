@@ -7,6 +7,19 @@ import { RH, RW, roomFrame } from './clownMotel';
 // The Clown Motel's horror rooms, each dressed after a film, behind the
 // doors that stand ajar along the walkway.
 
+/** A standing figure (doll, child, puppet): legs, torso, arms, head and hair. Scale 1 = 1 m tall. */
+function figure(k: Kit, fr: Frame, x: number, y: number, z: number, yaw: number, s: number, top: string, legs: string, skin: string, hair: string, dress = false) {
+  const f = fr.sub(x, y, z, yaw);
+  if (dress) k.geo(f, new THREE.ConeGeometry(0.22 * s, 0.55 * s, 10).translate(0, 0.275 * s, 0), 0, 0.05 * s, 0, top, k.in(0.8));
+  else for (const sx of [-0.06, 0.06]) k.ibox(f, sx * s, 0, 0, 0.1 * s, 0.45 * s, 0.11 * s, legs, 0.8);
+  k.ibox(f, 0, 0.45 * s, 0, 0.28 * s, 0.3 * s, 0.15 * s, top, 0.8);
+  for (const sx of [-0.17, 0.17]) k.ibox(f, sx * s, 0.43 * s, 0, 0.07 * s, 0.3 * s, 0.08 * s, top, 0.8);
+  k.sphere(f, 0, 0.86 * s, 0, 0.1 * s, skin, k.in(0.6), 10);
+  k.sphere(f, 0, 0.9 * s, -0.02 * s, 0.105 * s, hair, k.in(0.95), 10);
+  if (dress) k.ibox(f, 0, 0.66 * s, -0.07 * s, 0.2 * s, 0.24 * s, 0.05 * s, hair, 0.95);
+  for (const sx of [-0.035, 0.035]) k.sphere(f, sx * s, 0.88 * s, 0.09 * s, 0.012 * s, '#0a0a0a', k.in(0.3), 4);
+}
+
 /** A balloon bobbing on its string, tied to (x, 0, z) and floating at height y. */
 function balloon(k: Kit, fr: Frame, x: number, y: number, z: number, color: string) {
   k.cyl(fr, x, 0, z, 0.004, 0.004, y - 0.15, '#f0f0f0', k.in(0.5), 3);
@@ -45,8 +58,40 @@ function balloonRoom(k: Kit, b: Frame) {
   k.lamp(rf, 0, 2.2, -2, 4, 0.5, '#ff6060');
 }
 
+/**
+ * 106, the hotel room: hexagon carpet in orange and oxblood, a tennis ball
+ * rolled to the door, a typewriter with one line typed over and over, the
+ * twins at the end of the room, and the word on the bathroom wall.
+ */
+function overlookRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 106);
+  const hex = new THREE.CylinderGeometry(0.2, 0.2, 0.012, 6);
+  const cols = ['#c8501a', '#6a1a10', '#3a1a0e'];
+  for (let r = 0; r < 20; r++) {
+    for (let c = 0; c < 10; c++) {
+      const x = -1.75 + c * 0.36 + (r % 2) * 0.18;
+      const z = -0.5 - r * 0.33;
+      if (x > 1.85 || z < -7.5) continue;
+      k.geo(rf, hex, x, 0.03, z, cols[(c + r * 2) % 3], k.in(0.95));
+    }
+  }
+  k.sphere(rf, -0.6, 0.065, -1.0, 0.035, '#d8e840', k.in(0.6), 8);
+  // Typewriter on the table, a page in it, a stack beside.
+  const tw = rf.sub(0.8, 0.72, -1.3);
+  k.ibox(tw, 0, 0, 0, 0.4, 0.1, 0.32, '#2a2a2a', 0.3);
+  k.ibox(tw, 0, 0.1, -0.06, 0.44, 0.06, 0.08, '#1a1a1a', 0.3);
+  k.ibox(tw, 0, 0.12, -0.1, 0.26, 0.24, 0.005, '#f8f8f0', 0.9);
+  for (let i = 0; i < 8; i++) k.ibox(tw, 0.3, i * 0.008, 0.05, 0.2, 0.006, 0.28, '#f4f0e4', 0.9, i * 0.05);
+  // The twins, hand in hand, in pale blue.
+  for (const sx of [-0.2, 0.2]) figure(k, rf, 1.1 + sx, 0, -6.9, 0.15, 1.3, '#a8c8e8', '#a8c8e8', '#f0dcd0', '#5a3a20', true);
+  k.ibox(rf, 1.1, 0.5, -6.85, 0.16, 0.05, 0.05, '#f0dcd0', 0.6);
+  k.sign(rf, 'redrum', -0.6, 1.45, -7.54, 0.3, 0.3, FX.INTERIOR);
+  k.lamp(rf, 1.1, 1.6, -6.0, 3, 0.35, '#c8e0ff');
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
   balloonRoom(k, b);
+  overlookRoom(k, b);
 }
