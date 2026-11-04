@@ -13,6 +13,7 @@ import { stationDining, stationFloor, stationHotel, stationPylon, stationShell }
 import { courthouseOffices, courthouseShell, courtroom } from './sites/courthouse';
 import { belvadaLobby, belvadaRooms, belvadaShell } from './sites/belvada';
 import { museumHall, museumShell, museumYard } from './sites/museum';
+import { brewingShell } from './sites/brewing';
 import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
@@ -41,6 +42,8 @@ export class Landmarks {
   readonly belvada: Frame;
   /** The Central Nevada Museum's frame on its floor. */
   readonly museum: Frame;
+  /** Tonopah Brewing Co.'s frame on its floor. */
+  readonly brewing: Frame;
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -87,6 +90,7 @@ export class Landmarks {
     const museum = (this.museum = museumShell(k));
     museumHall(k, museum);
     museumYard(k, museum);
+    this.brewing = brewingShell(k);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
