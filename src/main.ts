@@ -1,0 +1,872 @@
+import './style.css';
+import './ui/ui.css';
+import * as THREE from 'three';
+import { Engine } from './render/engine';
+import { Atmosphere } from './render/atmosphere';
+import { G } from './render/globals';
+import { Terrain } from './render/terrain';
+import { TerrainShadow } from './render/terrainShadow';
+import { Sky } from './sky/sky';
+import { loadWorld } from './world/loader';
+import { Heightfield } from './world/heightfield';
+import { createWorldTextures } from './world/textures';
+import { Environment } from './world/environment';
+import { Places } from './world/places';
+import { AirField } from './birds/air';
+import { Player } from './birds/player';
+import { ChaseCamera } from './birds/camera';
+import { Controls } from './birds/input';
+import { SPECIES, speciesById, type Palette } from './birds/species';
+import { Trees } from './veg/trees';
+import { ShadowMap } from './render/shadows';
+import { Props } from './world/props';
+import { Landmarks } from './world/landmarks';
+import { PowerLines } from './world/powerLines';
+import { Grass } from './veg/grass';
+import { WindParticles } from './life/windParticles';
+import { LightPoints } from './render/lightPoints';
+import { Traffic } from './life/traffic';
+import { Roads } from './world/roads';
+import { Wildlife } from './life/wildlife';
+import { Flocks, SP } from './life/flocks';
+import { SoundScape, type AudioState } from './audio/audio';
+import { LC } from './world/meta';
+import { createBirdShadowMaterial } from './birds/birdShader';
+import { LoadingScreen } from './ui/loading';
+import { Menu } from './ui/menu';
+import { Hud } from './ui/hud';
+import { loadSettings, saveSettings, type GameSettings } from './ui/settings';
+import { RoadIndex } from './world/roadIndex';
+import { Fences } from './world/fences';
+import { Cemeteries, planCemeteries } from './world/cemetery';
+import { resolveDestination } from './world/destinations';
+import { Vehicle } from './vehicle/vehicle';
+import { PAINTS } from './vehicle/carModel';
+import { DriveControls } from './vehicle/driveControls';
+import { DriveCamera } from './vehicle/driveCamera';
+import { DustTrail } from './vehicle/dust';
+import { Precipitation } from './weather/precip';
+import { Water } from './world/water';
+import { WaterSurface } from './render/waterSurface';
+import { Ghosts } from './life/ghosts';
+import { People } from './life/people';
+import { Discoveries } from './ui/discoveries';
+import { Lore, type Egg } from './world/lore';
+import { EggMap } from './ui/eggMap';
+import { Tour } from './ui/tour';
+import { VolcanoVision } from './world/volcano';
+import { isTouch } from './ui/device';
+import { TouchControls } from './ui/touch';
+
+function paletteFor(s: GameSettings): Palette {
+  const sp = speciesById(s.bird) ?? SPECIES[0];
+  const base = sp.palettes[s.palette] ?? sp.palettes[0];
+  const c = s.custom;
+  const p: Palette = { ...base };
+  if (c.back) Object.assign(p, { back: c.back, coverts: c.back, secondaries: c.back });
+  if (c.belly) Object.assign(p, { belly: c.belly, breast: c.belly, underCoverts: c.belly });
+  if (c.head) p.head = c.head;
+  if (c.tail) Object.assign(p, { tail: c.tail, tailUnder: c.tail });
+  return p;
+}
+
+async function boot() {
+  const canvas = document.getElementById('scene') as HTMLCanvasElement;
+  const ui = document.getElementById('ui')!;
+  const params = new URLSearchParams(location.search);
+  const loading = new LoadingScreen();
+  document.body.append(loading.root);
+
+  const engine = new Engine(canvas);
+  const world = await loadWorld((label, f) => loading.progress(label, f * 0.9));
+  loading.progress('Laying out the Great Basin', 0.92);
+  const heightfield = new Heightfield(world);
+  const cemeteryPlans = planCemeteries(world.osm);
+  const roadIndex = new RoadIndex(world.osm);
+  // Carves the lake and pond beds into the height grids, so it runs before the GPU copies.
+  const water = new Water(world, heightfield, roadIndex);
+  G.uWaterTex.value = water.texture;
+  G.uWaterSize.value = water.size;
+  G.uWaterDetail.value.copy(water.detail);
+  G.uWaterAtlas.value.copy(water.atlas);
+  const town = world.heights.town;
+  G.uTownRect.value.set(town.cx, town.cz, town.size);
+  const tex = createWorldTextures(world, engine.renderer);
+  const regionSizes: [number, number, number] = [
+    world.meta.regions.inner.size,
+    world.meta.regions.mid.size,
+    world.meta.regions.far.size,
+  ];
+
+  const settings = loadSettings(params);
+  const env = new Environment();
+  env.season = settings.season;
+  env.setWeather(settings.weather);
+  env.moon = settings.moon;
+  env.timeFlow = settings.timeFlow;
+  env.setPreset(settings.time);
+  env.apply(0);
+
+  const atmosphere = new Atmosphere(engine.renderer);
+  const terrainShadow = new TerrainShadow(engine.renderer, tex, regionSizes);
+  const terrain = new Terrain(tex, regionSizes, world.meta.landcover.size);
+  const sky = new Sky();
+  const waterSurface = new WaterSurface(terrain);
+  engine.scene.add(sky.mesh, terrain.mesh, waterSurface.mesh);
+
+  loading.progress('Growing the sagebrush and pinyon', 0.95);
+  const treeBuf = await fetch('data/trees.bin').then((r) => r.arrayBuffer());
+  const trees = new Trees(treeBuf, world.meta.trees?.size ?? 16000, heightfield, roadIndex, cemeteryPlans.flatMap((p) => p.trees), water);
+  engine.scene.add(trees.group);
+  const seasonMonth = () => env.month - 1 + (env.day - 1) / 30;
+  trees.setSeason(seasonMonth());
+  const grass = new Grass(terrain.material.uniforms, heightfield);
+  engine.scene.add(grass.group);
+  const motes = new WindParticles();
+  engine.scene.add(motes.points);
+
+  loading.progress('Lighting the Mizpah and the Clown Motel', 0.97);
+  const power = new PowerLines(world.osm, heightfield);
+  const landmarks = new Landmarks(world.osm, heightfield);
+  const props = new Props(world.osm, heightfield, power.pylons, (x, z) => landmarks.occupies(x, z), roadIndex, landmarks.lots);
+  const lights = new LightPoints([...props.lights, ...landmarks.lights]);
+  engine.scene.add(props.group, landmarks.group, lights.points, power.mesh);
+  const cemeteries = new Cemeteries(cemeteryPlans, heightfield);
+  engine.scene.add(cemeteries.group);
+  const roads = new Roads(world.osm, heightfield);
+  engine.scene.add(roads.group);
+  const fences = new Fences(world.osm, heightfield, roadIndex);
+  engine.scene.add(fences.group);
+  const traffic = new Traffic(world.osm, heightfield);
+  engine.scene.add(traffic.group);
+  const wildlife = new Wildlife(heightfield);
+  engine.scene.add(wildlife.group);
+  // Main Street's sidewalks through the old business district, either side of the centreline.
+  const sidewalks: number[][] = [];
+  for (const r of world.osm.roads) {
+    if (r.name !== 'North Main Street' && r.name !== 'South Main Street' && r.name !== 'Brougher Avenue' && !/Brougher Avenue/.test(r.name)) continue;
+    if (Math.hypot(r.pts[0], r.pts[1]) > 900) continue;
+    for (const side of [-1, 1]) {
+      const w: number[] = [];
+      for (let i = 0; i < r.pts.length; i += 2) {
+        const j = Math.min(i + 2, r.pts.length - 2), k = Math.max(0, i - 2);
+        const dx = r.pts[j] - r.pts[k], dz = r.pts[j + 1] - r.pts[k + 1];
+        const l = Math.hypot(dx, dz) || 1;
+        w.push(r.pts[i] - (dz / l) * 8 * side, r.pts[i + 1] + (dx / l) * 8 * side);
+      }
+      sidewalks.push(w);
+    }
+  }
+  const people = new People(
+    [
+      { walks: sidewalks, spots: landmarks.spots, day: 0.8, night: 0.35, cx: 0, cz: 0, radius: 900 },
+      { walks: [], spots: landmarks.farSpots, day: 0.7, night: 0.5, cx: 1000, cz: 1050, radius: 500 },
+    ],
+    heightfield,
+  );
+  engine.scene.add(people.group);
+  const flocks = new Flocks(heightfield);
+  flocks.setMonth(env.month);
+  engine.scene.add(flocks.mesh);
+
+  const graveyard = cemeteryPlans.find((p) => p.name === 'Tonopah Cemetery');
+  const ghosts = graveyard ? new Ghosts(graveyard, heightfield) : null;
+  if (ghosts) engine.scene.add(ghosts.group);
+  // Mount Butler, one of the dacite plugs of the Miocene Tonopah volcanic field.
+  const vent = new THREE.Vector3(-209, heightfield.height(-209, 1975) - 15, 1975);
+  const volcano = new VolcanoVision(vent, { x: -300, z: 1700, r: 3200 });
+  engine.scene.add(volcano.points);
+
+  const air = new AirField(heightfield);
+  const species = speciesById(settings.bird) ?? SPECIES[0];
+  const player = new Player(species, paletteFor(settings), heightfield, air);
+  player.flight.water = (x, z) => water.sample(x, z);
+  // Default spawn: northwest of town over US-95, heading southeast down Main Street toward the Mizpah.
+  const sp = (params.get('spawn') || '-1300,2050,-1100,0.87').split(',').map(Number);
+  player.flight.spawn(sp[0], sp[1], sp[2], sp[3]);
+  engine.scene.add(player.object);
+  const car = new Vehicle(heightfield, roadIndex, heightfield.mid.size);
+  car.model.setPaint((PAINTS.find((p) => p.id === settings.truck) ?? PAINTS[0]).hex);
+  car.physics.obstacles = (x, z, r) => trees.trunkHit(x, z, r);
+  engine.scene.add(car.object);
+  const dust = new DustTrail();
+  engine.scene.add(dust.points);
+  const precip = new Precipitation();
+  engine.scene.add(precip.mesh);
+
+  const shadow = new ShadowMap();
+  trees.addShadowCasters(shadow);
+  props.addShadowCasters(shadow);
+  landmarks.addShadowCasters(shadow);
+  cemeteries.addShadowCasters(shadow);
+  wildlife.addShadowCasters(shadow);
+  player.shadowCaster = shadow.addCaster(player.model.geometry, createBirdShadowMaterial(), player.object);
+  const carCasters = car.model.addShadows((g, m, f) => shadow.addCaster(g, m, f));
+
+  const cam = engine.camera;
+  const controls = new Controls();
+  controls.invertPitch = settings.invertPitch;
+  const chase = new ChaseCamera(cam, heightfield, canvas);
+  const drive = new DriveControls(controls, canvas);
+  const driveCam = new DriveCamera(cam, heightfield);
+  const places = new Places(world.osm);
+  const hud = new Hud(places);
+  hud.units = settings.units;
+  const menu = new Menu(settings);
+  const journal = new Discoveries();
+  const lore = new Lore(heightfield, journal, volcano, graveyard);
+  journal.total = lore.ids.length + (ghosts ? 1 : 0);
+  const ghostEgg = {
+    id: 'ghosts',
+    kind: 'secret' as const,
+    kicker: 'Old Tonopah Cemetery · after dark',
+    title: 'The Belmont fire shift',
+    text: 'Pale miners drift between the wooden headboards, carbide lamps swinging, and fade the moment you come close. Seventeen men died in the Tonopah-Belmont fire of 1911, and most of them were buried right here.',
+  };
+  if (ghosts) ghosts.onSight = () => journal.discover(ghostEgg);
+  const atlas = lore.atlas();
+  const eggs: Egg[] = [
+    ...atlas,
+    ...(graveyard ? [{ ...ghostEgg, x: graveyard.cx, z: graveyard.cz, hint: 'Come back to the cemetery after dark and fly low among the graves.', r: 70, h: 18, night: true }] : []),
+  ];
+  const eggFound = (id: string) => journal.has(id);
+  const tour = new Tour(eggs);
+  let eggMap: EggMap | null = null;
+  ui.append(menu.root, hud.root, hud.help, journal.root, tour.root);
+  const touch = isTouch ? new TouchControls(controls) : null;
+  if (touch) {
+    document.body.classList.add('touch');
+    hud.useTouch();
+    ui.append(touch.root);
+  }
+  /** Phones: go full screen in landscape when play starts (where the browser allows it). */
+  const immerse = () => {
+    if (!touch || document.fullscreenElement) return;
+    const el = document.documentElement;
+    el.requestFullscreen?.({ navigationUI: 'hide' })
+      .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape'))
+      .catch(() => {});
+  };
+
+  const free = params.has('free');
+  const inspect = params.has('inspect');
+  let inspectAngle = Number(params.get('inspect') || 0.8);
+  let inspectHeight = 0.35;
+  let mode: 'menu' | 'fly' = params.has('fly') || params.has('drive') ? 'fly' : 'menu';
+  let driving = false;
+  const previewAngle = 0.95;
+  let previewT = 0;
+
+  const applySettings = (s: GameSettings, what: keyof GameSettings) => {
+    switch (what) {
+      case 'bird':
+      case 'palette':
+      case 'custom':
+        player.setBird(speciesById(s.bird) ?? SPECIES[0], paletteFor(s));
+        break;
+      case 'season':
+        env.season = s.season;
+        env.setPreset(s.time);
+        trees.setSeason(seasonMonth());
+        break;
+      case 'time':
+        env.setPreset(s.time);
+        break;
+      case 'weather':
+        env.setWeather(s.weather);
+        break;
+      case 'moon':
+        env.moon = s.moon;
+        env.setPreset(s.time);
+        break;
+      case 'timeFlow':
+        env.timeFlow = s.timeFlow;
+        break;
+      case 'invertPitch':
+        controls.invertPitch = s.invertPitch;
+        break;
+      case 'units':
+        hud.units = s.units;
+        break;
+      case 'truck':
+        car.model.setPaint((PAINTS.find((p) => p.id === s.truck) ?? PAINTS[0]).hex);
+        break;
+    }
+    saveSettings(s);
+  };
+  menu.onChange = applySettings;
+
+  const setMode = (m: 'menu' | 'fly') => {
+    mode = m;
+    menu.show(m === 'menu');
+    hud.show(m === 'fly');
+    touch?.show(m === 'fly');
+    drive.enabled = m === 'fly' && driving;
+    player.object.visible = !driving;
+    if (m === 'fly') {
+      if (driving) driveCam.reset();
+      else chase.snapFrom(cam, player.object.position);
+      canvas.focus();
+    } else {
+      drive.release();
+      hud.toggleHelp(false);
+    }
+  };
+  /** Swaps between the bird and the pickup at the current spot. */
+  const setDriving = (d: boolean) => {
+    driving = d;
+    hud.setDriving(d);
+    touch?.setDriving(d);
+    drive.enabled = d && mode === 'fly';
+    if (d) {
+      const f = player.flight;
+      car.spawn(f.pos.x, f.pos.z, f.psi);
+      driveCam.reset();
+    } else {
+      drive.release();
+      const p = car.physics;
+      const fw = p.forward;
+      player.flight.spawn(p.pos.x + fw.x * 2, p.pos.y + 4, p.pos.z + fw.z * 2, p.psi);
+      player.flight.gamma = 0.3;
+      chase.snapFrom(cam, player.object.position);
+    }
+    player.object.visible = !d;
+    if (player.shadowCaster) player.shadowCaster.visible = !d;
+  };
+  for (const c of carCasters) c.visible = false;
+  const syncCarCasters = () => {
+    for (const c of carCasters) c.visible = car.object.visible;
+  };
+  const sound = new SoundScape();
+  sound.muted = localStorage.getItem('sl-muted') === '1';
+  const muteBtn = document.createElement('button');
+  muteBtn.className = 'sound-btn';
+  const ICON_ON = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none"/></svg>';
+  const ICON_OFF = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none"/></svg>';
+  const setMuted = (m: boolean) => {
+    sound.setMuted(m);
+    localStorage.setItem('sl-muted', m ? '1' : '0');
+    muteBtn.innerHTML = m ? ICON_OFF : ICON_ON;
+    muteBtn.title = m ? 'Unmute (M)' : 'Mute (M)';
+    muteBtn.classList.toggle('off', m);
+  };
+  setMuted(sound.muted);
+  muteBtn.onclick = (e) => {
+    e.stopPropagation();
+    sound.start();
+    setMuted(!sound.muted);
+    muteBtn.blur();
+    canvas.focus();
+  };
+  ui.append(muteBtn);
+  const fullBtn = document.createElement('button');
+  fullBtn.className = 'sound-btn full-btn';
+  const ICON_FULL = '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none"/></svg>';
+  const ICON_EXIT = '<svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none"/></svg>';
+  const toggleFull = () => {
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {});
+  };
+  const syncFull = () => {
+    const on = !!document.fullscreenElement;
+    fullBtn.innerHTML = on ? ICON_EXIT : ICON_FULL;
+    fullBtn.title = on ? 'Exit full screen (K)' : 'Full screen (K)';
+  };
+  syncFull();
+  document.addEventListener('fullscreenchange', syncFull);
+  fullBtn.onclick = (e) => {
+    e.stopPropagation();
+    toggleFull();
+    fullBtn.blur();
+    canvas.focus();
+  };
+  if (document.fullscreenEnabled) {
+    ui.append(fullBtn);
+    document.body.classList.add('can-full');
+  }
+  const mapBtn = document.createElement('button');
+  mapBtn.className = 'sound-btn map-btn';
+  mapBtn.title = 'Easter-egg map and learn tour (J)';
+  mapBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="none"/><path d="M9 4v14M15 6v14" fill="none"/></svg>';
+  ui.append(mapBtn);
+  const wake = () => sound.start();
+  addEventListener('pointerdown', wake);
+  addEventListener('keydown', wake);
+  /** Moves the truck or the bird to a named destination picked in the menu. */
+  const goTo = (id: string) => {
+    const s = resolveDestination(id, world.osm, cemeteryPlans);
+    if (!s) return;
+    let { x, z } = s;
+    if (driving) {
+      if (s.road) {
+        x += -Math.cos(s.psi) * 1.6;
+        z += Math.sin(s.psi) * 1.6;
+      }
+      car.place(x, z, s.psi);
+      driveCam.reset();
+    } else {
+      player.flight.spawn(x, heightfield.height(x, z) + 45, z, s.psi);
+      chase.snapFrom(cam, player.object.position);
+    }
+  };
+  const travel = () => {
+    if (!menu.place) return;
+    goTo(menu.place);
+    menu.place = null;
+  };
+  menu.onFly = () => {
+    sound.start();
+    immerse();
+    if (driving) setDriving(false);
+    travel();
+    setMode('fly');
+  };
+  menu.onDrive = () => {
+    sound.start();
+    immerse();
+    if (!driving) setDriving(true);
+    travel();
+    setMode('fly');
+  };
+  /** Drops the bird above an egg, facing it from the south. */
+  const flyTo = (e: Egg) => {
+    if (driving) setDriving(false);
+    const y = heightfield.height(e.x, e.z + e.r * 0.5);
+    player.flight.spawn(e.x, Math.max(y, heightfield.height(e.x, e.z)) + Math.max(40, e.h * 0.5), e.z + e.r * 0.5, 0);
+    chase.snapFrom(cam, player.object.position);
+  };
+  let tourNight = false;
+  let tourA = 0;
+  const showMap = (on: boolean) => {
+    if (on && !eggMap) {
+      const big = new Set(['motorway', 'trunk', 'primary', 'secondary']);
+      eggMap = new EggMap(eggs, {
+        height: (x, z) => heightfield.height(x, z),
+        water: (x, z) => water.sample(x, z).mask,
+        roads: world.osm.roads.filter((r) => big.has(r.kind)).map((r) => r.pts),
+      }, eggFound);
+      eggMap.onClose = () => showMap(false);
+      eggMap.onGo = (e) => {
+        showMap(false);
+        tour.stop();
+        flyTo(e);
+        setMode('fly');
+      };
+      eggMap.onTour = (i) => {
+        showMap(false);
+        startTour(i);
+      };
+      ui.append(eggMap.root);
+      void eggMap.root.offsetWidth;
+    }
+    eggMap?.show(on);
+    if (!on) canvas.focus();
+  };
+  mapBtn.onclick = (e) => {
+    e.stopPropagation();
+    showMap(!eggMap?.open);
+    mapBtn.blur();
+  };
+  const startTour = (i: number) => {
+    if (driving) setDriving(false);
+    drive.release();
+    menu.show(false);
+    hud.show(false);
+    touch?.show(false);
+    player.object.visible = false;
+    tour.start(i);
+  };
+  tour.onStop = (e) => {
+    tourA = Math.random() * Math.PI * 2;
+    if (e.night && G.uNight.value < 0.5) {
+      env.setPreset('night');
+      tourNight = true;
+    } else if (!e.night && tourNight) {
+      env.setPreset(settings.time);
+      tourNight = false;
+    }
+    // Park the bird under the camera so shadows and detail follow the tour.
+    player.flight.spawn(e.x, heightfield.height(e.x, e.z) + e.h * 0.5, e.z, 0);
+    if (e.id === 'butler-summit' && !volcano.active) volcano.start();
+  };
+  tour.onExit = () => {
+    if (tourNight) env.setPreset(settings.time);
+    tourNight = false;
+    flyTo(lastStop ?? eggs[0]);
+    setMode('fly');
+  };
+  let lastStop: Egg | null = null;
+  if (params.has('drive')) setDriving(true);
+  if (params.get('place')) goTo(params.get('place')!);
+  setMode(mode);
+  if (params.has('learn')) startTour(0);
+
+  addEventListener('keydown', (e) => {
+    if (eggMap?.open && (e.code === 'Escape' || e.code === 'KeyJ')) return showMap(false);
+    if (tour.key(e.code)) return e.preventDefault();
+    if (tour.active) return;
+    if (e.code === 'KeyJ' && !e.repeat) return showMap(true);
+    if (e.code === 'Escape') setMode(mode === 'menu' ? 'fly' : 'menu');
+    if (e.code === 'KeyK' && !e.repeat) toggleFull();
+    if (mode !== 'fly') return;
+    if (e.code === 'KeyH') hud.toggleHelp();
+    if (e.code === 'KeyT') hud.toggleHidden();
+    if (e.code === 'KeyV' && !driving) sound.call(player.species.id);
+    if (e.code === 'KeyM') setMuted(!sound.muted);
+    if (e.code === 'KeyG' && !e.repeat) setDriving(!driving);
+    if (e.code === 'KeyL' && driving) car.headlights = !car.headlightsWanted(G.uNight.value, murky());
+  });
+
+  // Habitat sampled in a ring under the bird drives the ambient soundscape.
+  const aud: AudioState = {
+    speed: 0, agl: 100, flapPhase: 0, flapAmount: 0, perched: false, night: 0, month: 6, hour: 12,
+    wet: 0, scrub: 0, town: 0, ravens: Infinity, burro: Infinity, car: Infinity, carSpeed: 0, active: false,
+    drive: 0, rpm: 0, throttle: 0, tyre: 0, slip: 0, horn: false,
+    rain: 0, snow: 0, roadWet: 0, windSpeed: 0,
+  };
+  let habitatT = 0;
+  const updateSound = (dt: number) => {
+    const f = player.flight;
+    const p = driving ? car.object.position : player.object.position;
+    const agl = driving ? 1.5 : f.agl;
+    habitatT -= dt;
+    if (habitatT <= 0) {
+      habitatT = 0.5;
+      let wet = 0;
+      let scrub = 0;
+      let town = 0;
+      const R = 60 + Math.min(agl, 400) * 0.5;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        const r = i % 2 ? R : R * 0.4;
+        const lc = heightfield.landcover(p.x + Math.cos(a) * r, p.z + Math.sin(a) * r);
+        if (lc === LC.WETLAND || lc === LC.WATER || water.sample(p.x + Math.cos(a) * r, p.z + Math.sin(a) * r).mask > 0.3) wet++;
+        if (lc === LC.SHADSCALE || lc === LC.SAGEBRUSH || lc === LC.BLACKSAGE || lc === LC.WASH || lc === LC.GRASS || lc === LC.PINYON) scrub++;
+        if (lc >= LC.URBAN_OPEN && lc <= LC.URBAN_HIGH) town++;
+      }
+      aud.wet = wet / 12;
+      aud.scrub = scrub / 12;
+      aud.town = town / 12;
+      aud.ravens = flocks.nearest(p, SP.RAVEN);
+      aud.burro = wildlife.nearest(p, 'burro');
+      const c = traffic.nearest(p);
+      aud.car = c.d;
+      aud.carSpeed = c.v;
+    }
+    const cp = car.physics;
+    aud.speed = driving ? Math.abs(cp.speed) : f.speed;
+    aud.agl = agl;
+    aud.flapPhase = f.flapPhase;
+    aud.flapAmount = driving ? 0 : f.flapAmount;
+    aud.perched = !driving && f.state === 'perched';
+    aud.drive = driving ? 1 : 0;
+    aud.rpm = cp.rpm;
+    aud.throttle = drive.input.throttle;
+    aud.tyre = cp.surface.rough;
+    aud.slip = cp.slip;
+    aud.horn = driving && mode === 'fly' && controls.keys.has('KeyV');
+    aud.night = G.uNight.value;
+    aud.month = env.month;
+    aud.hour = env.hours;
+    aud.active = mode === 'fly' && !free;
+    aud.rain = G.uRain.value;
+    aud.snow = G.uSnowCover.value;
+    aud.roadWet = G.uWet.value;
+    aud.windSpeed = G.uWind.value.length();
+    env.listener.copy(cam.position);
+    for (const strike of env.takeStrikes()) sound.thunder(strike.dist);
+    sound.update(dt, aud);
+  };
+
+  // Debug free camera (?free).
+  const c = (params.get('cam') || '0,2200,2600,0,-0.18').split(',').map(Number);
+  let yaw = c[3];
+  let pitch = c[4];
+  if (free) cam.position.set(c[0], c[1], c[2]);
+  canvas.addEventListener('mousemove', (e) => {
+    if (free && e.buttons & 1) {
+      yaw -= e.movementX * 0.003;
+      pitch = Math.max(-1.5, Math.min(1.5, pitch - e.movementY * 0.003));
+    }
+  });
+
+  /** Debug: aim the free camera at a world point. */
+  (window as unknown as { freeLook: unknown }).freeLook = (x: number, y: number, z: number, tx: number, ty: number, tz: number) => {
+    cam.position.set(x, y, z);
+    const dx = tx - x;
+    const dy = ty - y;
+    const dz = tz - z;
+    yaw = Math.atan2(-dx, -dz);
+    pitch = Math.atan2(dy, Math.hypot(dx, dz));
+  };
+
+  function freeCam(dt: number) {
+    const keys = controls.keys;
+    const speed = keys.has('ShiftLeft') ? 800 : 120;
+    const fwd = new THREE.Vector3(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+    const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+    if (keys.has('KeyW')) cam.position.addScaledVector(fwd, speed * dt);
+    if (keys.has('KeyS')) cam.position.addScaledVector(fwd, -speed * dt);
+    if (keys.has('KeyD')) cam.position.addScaledVector(right, speed * dt);
+    if (keys.has('KeyA')) cam.position.addScaledVector(right, -speed * dt);
+    if (keys.has('KeyE')) cam.position.y += speed * dt;
+    if (keys.has('KeyQ')) cam.position.y -= speed * dt;
+    cam.position.y = Math.max(cam.position.y, heightfield.height(cam.position.x, cam.position.z) + 0.3);
+    cam.rotation.set(pitch, yaw, 0, 'YXZ');
+    cam.updateMatrixWorld();
+  }
+
+  const tmpRight = new THREE.Vector3();
+  function previewCam(dt: number) {
+    // Menu backdrop: the bird hangs in the air while the camera drifts around it.
+    previewT += dt;
+    player.flight.animateOnly(dt, previewT);
+    player.sync();
+    const b = player.object.position;
+    const r = player.species.shape.wingspan * 2.1 + 1.2;
+    // Keep the camera on the lit side of the bird, swaying slowly.
+    const L = G.uSunDir.value.y > -0.05 ? G.uSunDir.value : G.uMoonDir.value;
+    const sunAz = Math.atan2(L.x, L.z);
+    // Front three-quarter view, on whichever side faces the light.
+    const psi = player.flight.psi;
+    const off = (x: number) => Math.abs(Math.atan2(Math.sin(x - sunAz), Math.cos(x - sunAz)));
+    const side = off(psi + previewAngle) < off(psi - previewAngle) ? 1 : -1;
+    const a = psi + side * (previewAngle + Math.sin(previewT * 0.12) * 0.35);
+    cam.position.set(b.x + Math.sin(a) * r, b.y + r * 0.32, b.z + Math.cos(a) * r);
+    const gh = heightfield.height(cam.position.x, cam.position.z);
+    cam.position.y = Math.max(cam.position.y, gh + 1.5);
+    cam.fov = 42;
+    cam.near = 0.25;
+    cam.updateProjectionMatrix();
+    cam.up.set(0, 1, 0);
+    cam.lookAt(b);
+    // Shift the bird right of centre, clear of the menu panel.
+    if (innerWidth > 820) {
+      tmpRight.setFromMatrixColumn(cam.matrix, 0);
+      const halfW = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * r * cam.aspect;
+      cam.lookAt(b.clone().addScaledVector(tmpRight, -halfW * 0.38));
+    }
+    cam.updateMatrixWorld();
+  }
+
+  function previewCar(dt: number) {
+    // Menu backdrop while driving: a slow orbit around the parked truck.
+    previewT += dt;
+    car.sync(dt, G.uNight.value, car.headlightsWanted(G.uNight.value, murky()));
+    const b = car.object.position.clone();
+    b.y += 1.1;
+    const a = car.physics.psi + 0.9 + previewT * 0.06;
+    const r = 8.5;
+    cam.position.set(b.x + Math.sin(a) * r, b.y + 1.4, b.z + Math.cos(a) * r);
+    cam.position.y = Math.max(cam.position.y, heightfield.height(cam.position.x, cam.position.z) + 1.2);
+    cam.fov = 42;
+    cam.near = 0.25;
+    cam.updateProjectionMatrix();
+    cam.up.set(0, 1, 0);
+    cam.lookAt(b);
+    if (innerWidth > 820) {
+      tmpRight.setFromMatrixColumn(cam.matrix, 0);
+      const halfW = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * r * cam.aspect;
+      cam.lookAt(b.clone().addScaledVector(tmpRight, -halfW * 0.38));
+    }
+    cam.updateMatrixWorld();
+  }
+
+  function tourCam(dt: number) {
+    const e = tour.egg!;
+    lastStop = e;
+    tourA += dt * (0.05 + 18 / Math.max(60, e.r * 4));
+    const wet = water.sample(e.x, e.z);
+    const gy = Math.max(heightfield.height(e.x, e.z), wet.mask > 0.3 ? wet.level : -Infinity);
+    const r = e.r;
+    cam.position.set(e.x + Math.sin(tourA) * r, 0, e.z + Math.cos(tourA) * r);
+    cam.position.y = Math.max(gy + e.h, heightfield.height(cam.position.x, cam.position.z) + 6);
+    cam.fov = 50;
+    cam.near = 0.25;
+    cam.updateProjectionMatrix();
+    cam.up.set(0, 1, 0);
+    cam.lookAt(e.x, gy + Math.min(e.h * 0.15, 30), e.z);
+    cam.updateMatrixWorld();
+  }
+
+  const clock = new THREE.Clock();
+  let lastMie = -1;
+  const murky = () => G.uFogDensity.value > 0.003 || G.uRain.value + G.uSnowFall.value > 0.04;
+
+  function frame() {
+    step();
+    schedule(frame);
+  }
+
+  function step() {
+    const rawDt = clock.getDelta();
+    const dt = Math.min(rawDt, 0.1);
+    if (!params.has('timer')) engine.adapt(rawDt);
+    G.uTime.value += dt;
+    env.apply(dt);
+
+    air.time += dt;
+    const deck = Math.min(1, Math.max(G.uRain.value, G.uSnowFall.value) * 5);
+    air.sun = Math.max(0, Math.sin(env.sunAltitude * THREE.MathUtils.DEG2RAD) * 1.2) * (1 - 0.6 * G.uCloudCover.value) * (1 - deck);
+    air.rain = G.uRain.value;
+    air.snow = G.uSnowFall.value;
+    air.windX = G.uWind.value.x;
+    air.windZ = G.uWind.value.y;
+
+    if (free) {
+      freeCam(dt);
+    } else if (inspect) {
+      inspectAngle += dt * 0.25;
+      const b = player.flight.pos;
+      player.flight.quaternion.identity();
+      player.sync();
+      const r = player.species.shape.wingspan * 1.6;
+      cam.position.set(b.x + Math.sin(inspectAngle) * r, b.y + r * inspectHeight, b.z + Math.cos(inspectAngle) * r);
+      cam.fov = 45;
+      cam.updateProjectionMatrix();
+      cam.lookAt(b);
+      cam.updateMatrixWorld();
+    } else if (tour.active) {
+      tour.update(dt);
+      if (tour.active) tourCam(dt);
+    } else if (mode === 'menu') {
+      controls.update(dt);
+      if (driving) previewCar(dt);
+      else previewCam(dt);
+    } else if (driving) {
+      const input = drive.update(dt);
+      if (controls.consume('KeyC')) driveCam.cycle();
+      car.step(dt, input);
+      if (car.physics.crashed > 0) {
+        sound.crash(car.physics.crashed);
+        driveCam.shake = Math.min(1.5, car.physics.crashed / 6);
+        car.physics.crashed = 0;
+      }
+      car.sync(dt, G.uNight.value, car.headlightsWanted(G.uNight.value, murky()));
+      driveCam.update(dt, car.physics, car.model, drive.consumeLook());
+      hud.updateCar(dt, car.physics);
+    } else {
+      const input = controls.update(dt);
+      if (controls.consume('KeyC')) chase.cycle();
+      player.step(dt, input);
+      player.sync();
+      cam.near = 0.25;
+      chase.update(dt, player.flight, player.object);
+      hud.update(dt, player.flight, air);
+    }
+
+    if (G.uMieScale.value !== lastMie) {
+      lastMie = G.uMieScale.value;
+      atmosphere.rebuildTransmittance();
+    }
+    G.uCamPos.value.copy(cam.position);
+    const camWater = water.sample(cam.position.x, cam.position.z);
+    const underwater = camWater.mask > 0.3 && cam.position.y < camWater.level - 0.02;
+    G.uUnderwater.value = underwater ? 1 : 0;
+    G.uCamWaterY.value = camWater.level;
+    G.uCloudOffset.value.addScaledVector(G.uWind.value, dt * 4);
+    atmosphere.update();
+    terrainShadow.update();
+    terrain.update(cam);
+    trees.update(cam);
+    grass.setCar(car.physics.pos.x, car.physics.pos.z, car.physics.psi, car.object.visible);
+    grass.update(cam.position, seasonMonth());
+    motes.update(cam, heightfield.height(cam.position.x, cam.position.z), window.innerHeight * engine.pixelRatio, (1 - G.uNight.value * 0.9) * (1 - Math.min(1, (G.uRain.value + G.uSnowFall.value) * 4)) * (1 - G.uWet.value * 0.7));
+    lights.resize(cam, window.innerHeight * engine.pixelRatio);
+    traffic.lights.resize(cam, window.innerHeight * engine.pixelRatio);
+    power.resize(cam, window.innerHeight * engine.pixelRatio);
+    fences.update(cam, heightfield.height(cam.position.x, cam.position.z), window.innerHeight * engine.pixelRatio);
+    traffic.update(dt, cam.position, G.uNight.value, Math.max(G.uNight.value, murky() ? 0.35 : 0), 1 - 0.2 * G.uWet.value - 0.35 * G.uSnowCover.value);
+    const sw = G.uSeason.value;
+    dust.update(dt, car.physics, driving && mode === 'fly', Math.min(1, sw.z + sw.w * 0.8 + sw.y * 0.2), cam, window.innerHeight * engine.pixelRatio);
+    precip.update(dt, cam, window.innerHeight * engine.pixelRatio, car.object.visible ? car.object.matrixWorld : null);
+    if (underwater) precip.mesh.visible = false;
+    car.model.weather(dt, car.physics.speed);
+    car.physics.wet = G.uWet.value;
+    car.physics.snow = G.uSnowCover.value;
+    const carWater = water.sample(car.physics.pos.x, car.physics.pos.z);
+    car.physics.waterDepth = carWater.mask > 0 ? Math.max(0, carWater.level - heightfield.surface(car.physics.pos.x, car.physics.pos.z)) : 0;
+    const actor = driving ? car.object.position : player.object.position;
+    wildlife.update(dt, cam.position, actor);
+    flocks.setMonth(env.month);
+    ghosts?.update(dt, cam, G.uNight.value);
+    people.update(dt, cam.position, G.uNight.value);
+    volcano.update(dt, cam, window.innerHeight * engine.pixelRatio);
+    if (mode === 'fly' && !free && !tour.active) {
+      const body = water.sample(actor.x, actor.z).mask > 0.3 ? water.bodyAt(actor.x, actor.z) : null;
+      lore.update({
+        pos: actor,
+        driving,
+        underwater,
+        truckUnder: driving && car.physics.waterDepth > 1.7,
+        water: body,
+        agl: driving ? 1.5 : player.flight.agl,
+        night: G.uNight.value,
+        snowCover: G.uSnowCover.value,
+      });
+    }
+    sound.setFx(underwater ? 1 : 0, ghosts?.presence ?? 0, volcano.level);
+    flocks.update(dt, cam.position, { x: air.windX, z: air.windZ });
+    syncCarCasters();
+    G.uHeadOn.value = car.object.visible ? car.headOn : 0;
+    if (G.uHeadOn.value > 0) {
+      car.model.body.updateWorldMatrix(true, false);
+      G.uHeadPos.value.set(2.9, 0.95, 0).applyMatrix4(car.model.body.matrixWorld);
+      G.uHeadDir.value.set(1, -0.035, 0).transformDirection(car.model.body.matrixWorld);
+    }
+    const focus = free ? cam.position : actor;
+    props.update(cam.position, focus);
+    shadow.update(engine.renderer, focus);
+    G.uInvExposure.value = 1 / env.exposure;
+    updateSound(dt);
+    sky.update(cam, env.exposure);
+    engine.render(env.exposure, G.uNight.value, G.uTime.value);
+  }
+  // Background/headless tabs throttle rAF; ?timer keeps the loop alive for capture.
+  const schedule = params.has('timer') ? (f: () => void) => setTimeout(f, 16) : requestAnimationFrame;
+  frame();
+  loading.done();
+  Object.assign(window, {
+    touch, engine, env, terrain, water, waterSurface, ghosts, people, volcano, journal, tour, showMap, eggs, lore, heightfield, G, player, chase, air, car, driveCam, roadIndex, fences, dust, drive, shadow, precip, cemeteries, cemeteryPlans, controls, menu, hud, places, trees, props, landmarks, lights, traffic, wildlife, flocks, sound, power, grass, roads, motes,
+    inspectView: (a: number, h: number) => ((inspectAngle = a), (inspectHeight = h)),
+    /** Renders a frame and returns it as a JPEG data URL (debug capture). */
+    snap: (w = 1100, x0 = 0, y0 = 0, cw = 1, ch = 1) => {
+      engine.render(env.exposure, G.uNight.value, G.uTime.value);
+      const c = engine.renderer.domElement;
+      const o = document.createElement('canvas');
+      o.width = w;
+      o.height = Math.round((w * c.height * ch) / (c.width * cw));
+      o.getContext('2d')!.drawImage(c, x0 * c.width, y0 * c.height, cw * c.width, ch * c.height, 0, 0, o.width, o.height);
+      return o.toDataURL('image/jpeg', 0.88);
+    },
+    setMode,
+    setDriving,
+    /** Debug: runs whole frames now, for captures from throttled background tabs. */
+    tick: (n = 1) => {
+      for (let i = 0; i < n; i++) step();
+    },
+    /** Debug: [x, y, z, tx, ty, tz, minAGL?] views → 'x|jpeg|jpeg…' (needs ?free). */
+    capture: (views: number[][], w = 700) => {
+      const shots = ['x'];
+      for (const v of views) {
+        const h = heightfield.height(v[0], v[2]);
+        (window as unknown as { freeLook: (...a: number[]) => void }).freeLook(v[0], Math.max(v[1], h + (v[6] ?? 3)), v[2], v[3], v[4], v[5]);
+        controls.keys.clear();
+        for (let i = 0; i < 6; i++) step();
+        engine.render(env.exposure, G.uNight.value, G.uTime.value);
+        const c = engine.renderer.domElement;
+        const o = document.createElement('canvas');
+        o.width = w;
+        o.height = Math.round((w * c.height) / c.width);
+        o.getContext('2d')!.drawImage(c, 0, 0, o.width, o.height);
+        shots.push(o.toDataURL('image/jpeg', 0.88));
+      }
+      return shots.join('|');
+    },
+  });
+}
+
+boot().catch((err) => {
+  console.error(err);
+  document.body.insertAdjacentHTML('beforeend', `<pre style="color:#f88;position:fixed;top:0;left:0;padding:20px">${err.stack || err}</pre>`);
+});
