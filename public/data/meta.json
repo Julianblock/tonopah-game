@@ -1,0 +1,74 @@
+{
+  "center": {
+    "lat": 38.068,
+    "lon": -117.2302
+  },
+  "regions": {
+    "inner": {
+      "size": 22000,
+      "heightRes": 2048,
+      "heightZoom": 14,
+      "imageRes": 4096,
+      "imageZoom": 15
+    },
+    "mid": {
+      "size": 92000,
+      "heightRes": 2048,
+      "heightZoom": 12,
+      "imageRes": 4096,
+      "imageZoom": 13
+    },
+    "far": {
+      "size": 400000,
+      "heightRes": 1024,
+      "heightZoom": 9,
+      "imageRes": 2048,
+      "imageZoom": 10
+    },
+    "town": {
+      "size": 6000,
+      "cx": 200,
+      "cz": 300,
+      "heightRes": 2048,
+      "heightZoom": 15,
+      "imageRes": 4096,
+      "imageZoom": 17
+    }
+  },
+  "heightEncoding": {
+    "inner": {
+      "offset": 0,
+      "scale": 20
+    },
+    "mid": {
+      "offset": 0,
+      "scale": 18
+    },
+    "far": {
+      "offset": 100,
+      "scale": 14
+    },
+    "town": {
+      "offset": 0,
+      "scale": 24
+    }
+  },
+  "heightRanges": {
+    "inner": {
+      "min": 1513.887954253841,
+      "max": 2190.81817828219
+    },
+    "mid": {
+      "min": 1294.0843597048943,
+      "max": 2836.137883483869
+    },
+    "far": {
+      "min": -95,
+      "max": 4330.49618306724
+    },
+    "town": {
+      "min": 1749.395687422003,
+      "max": 2191.9922034550264
+    }
+  }
+}
