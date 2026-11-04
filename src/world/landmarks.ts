@@ -11,6 +11,7 @@ import { clownCollection, clownLobby, clownOffice, clownPole, clownRooms, clownW
 import { clownHorror } from './sites/clownHorror';
 import { stationDining, stationFloor, stationHotel, stationPylon, stationShell } from './sites/station';
 import { courthouseOffices, courthouseShell, courtroom } from './sites/courthouse';
+import { belvadaShell } from './sites/belvada';
 import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
@@ -35,6 +36,8 @@ export class Landmarks {
   readonly hoists: Frame[];
   /** The courthouse frame on its lobby floor. */
   readonly courthouse: Frame;
+  /** The Belvada's frame on the banking-hall floor. */
+  readonly belvada: Frame;
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -75,6 +78,7 @@ export class Landmarks {
     const court = (this.courthouse = courthouseShell(k));
     courthouseOffices(k, court);
     courtroom(k, court);
+    this.belvada = belvadaShell(k);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
