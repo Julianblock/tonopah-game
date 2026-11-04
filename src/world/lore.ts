@@ -350,6 +350,14 @@ export class Lore {
 
   private butlerSummit: (s: LoreState) => boolean;
 
+  /** Unlocks a spot by id, for secrets you find by seeing rather than by going. */
+  reveal(id: string) {
+    const spot = this.spots.find((s) => s.id === id);
+    if (!spot || this.journal.has(id)) return;
+    const { test: _t, ...d } = spot;
+    this.journal.discover(d);
+  }
+
   update(s: LoreState) {
     for (const spot of this.spots) {
       if (this.journal.has(spot.id) || !spot.test(s)) continue;
