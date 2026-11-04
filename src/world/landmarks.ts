@@ -7,7 +7,7 @@ import type { Heightfield } from './heightfield';
 import { Kit } from './kit';
 import type { OsmData } from './meta';
 import { buildSignAtlas } from './signAtlas';
-import { mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
+import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
 const LAMPS = 48;
 
@@ -19,6 +19,8 @@ const LAMPS = 48;
 export class Landmarks {
   readonly group = new THREE.Group();
   readonly k: Kit;
+  /** The Mizpah's frame at lobby-floor level, for the things that haunt it. */
+  readonly mizpah: Frame;
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -35,12 +37,13 @@ export class Landmarks {
 
     this.welcome(-1700, -1100, -1);
     this.welcome(1300, 1900, 1);
-    const mizpah = mizpahShell(k);
+    const mizpah = (this.mizpah = mizpahShell(k));
     mizpahLobby(k, mizpah);
     mizpahDempsey(k, mizpah);
     mizpahCore(k, mizpah);
     mizpahFloors(k, mizpah);
     mizpahRooms(k, mizpah);
+    mizpah502(k, mizpah);
     mizpahFacade(k, mizpah);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
