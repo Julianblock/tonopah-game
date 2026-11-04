@@ -11,7 +11,7 @@ import { clownCollection, clownLobby, clownOffice, clownPole, clownRooms, clownW
 import { clownHorror } from './sites/clownHorror';
 import { stationDining, stationFloor, stationHotel, stationPylon, stationShell } from './sites/station';
 import { courthouseOffices, courthouseShell, courtroom } from './sites/courthouse';
-import { belvadaLobby, belvadaShell } from './sites/belvada';
+import { belvadaLobby, belvadaRooms, belvadaShell } from './sites/belvada';
 import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
@@ -80,6 +80,7 @@ export class Landmarks {
     courtroom(k, court);
     const belvada = (this.belvada = belvadaShell(k));
     belvadaLobby(k, belvada);
+    belvadaRooms(k, belvada);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({

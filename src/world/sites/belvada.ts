@@ -15,6 +15,8 @@ const W = 16.8;
 const D = 31.8;
 const LV = [0, 4.8, 8.4, 12.0];
 const TOP = 15.6;
+/** Stairwell along the back of the west wall, on every floor. */
+const WELL = { x0: -W / 2 + 0.2, x1: -W / 2 + 2.2, z0: -D + 0.3, z1: -D + 8.3 };
 
 /** Belvada frame on the banking-hall floor: x across the Main Street front, z out toward the street. */
 export function belvadaShell(k: Kit): Frame {
@@ -134,4 +136,57 @@ export function belvadaLobby(k: Kit, b: Frame) {
   for (let r = 0; r < 8; r++) for (let c = 0; c < 10; c++) k.box(v, -1.95 + c * 0.39 + 0.2, 0.2 + r * 0.36, 0.1, 0.36, 0.33, 0.02, (r + c) % 3 ? '#b8a878' : '#a89868', k.in(0.3));
   k.lamp(v, 0, 2.2, 1.8, 4, 0.6);
   k.lamp(b, 0, 3.8, -6, 8, 0.8);
+}
+
+/**
+ * Three floors of hotel rooms off a central corridor, each with an iron or
+ * walnut bed, a reading lamp, a dresser and an old radiator under the window.
+ */
+export function belvadaRooms(k: Kit, b: Frame) {
+  k.seed = 82;
+  const RL = 4.6;
+  for (let fl = 1; fl < 4; fl++) {
+    const y = LV[fl];
+    const top = (fl < 3 ? LV[fl + 1] : TOP - 0.3) - y;
+    const x1 = W / 2 - 0.2;
+    k.slab(b, 0, y, (WELL.z1 - 0.2) / 2, 2 * x1, -0.2 - WELL.z1, '#5a3a24', PLASTER);
+    k.slab(b, 1.2, y, (WELL.z0 + WELL.z1) / 2, x1 * 2 - 2.4, WELL.z1 - WELL.z0, '#5a3a24', PLASTER);
+    k.stairs(b, (WELL.x0 + WELL.x1) / 2, LV[fl - 1], WELL.z1, 1.8, y - LV[fl - 1], Math.round((y - LV[fl - 1]) / 0.18), '#5a3a24', '#4a2e1c', 0.28, 0, F.WOOD.walnut);
+    // Corridor with a runner and sconces.
+    F.rug(k, b, 0, y + 0.02, -D / 2 + 4, 1.4, D - 10, '#5a1a1a', '#c49a4a');
+    for (let z = -2.5; z > -D + 9; z -= 4.6) {
+      F.sconce(k, b, -1.05, y + 2.0, z, Math.PI / 2, 4, 0.5);
+      F.sconce(k, b, 1.05, y + 2.0, z - 2.3, -Math.PI / 2, 4, 0.5);
+    }
+    for (const s of [-1, 1] as const) {
+      const wf = k.side(b, s * 1.2, -D / 2 + 4.15, s);
+      const holes: Hole[] = [];
+      for (let i = 0; i < 5; i++) holes.push({ x: s * (D / 2 - 4.15 - 0.4 - i * RL - 1.0), y: 0, w: 0.95, h: 2.2 });
+      k.wall(wf.sub(0, y, 0), -D / 2 + 4.35, D / 2 - 4.15, 0, 0, top, 0.15, PLASTER, '#c8b89a', holes, k.in(0.8));
+      for (let i = 0; i < 5; i++) {
+        const z0 = -0.4 - i * RL;
+        const rf = b.sub(s * (W / 4 + 0.6), y, z0 - RL / 2, -s * Math.PI / 2);
+        room(k, rf, fl * 100 + i * 2 + (s > 0 ? 1 : 2), RL, top);
+        if (i < 4) k.ibox(b, s * (W / 4 + 0.6), y, z0 - RL, W / 2 - 1.4, top, 0.12, '#d8c8a8', 0.8);
+        F.door(k, b.sub(s * 1.12, y, z0 - 1.4, -s * Math.PI / 2), 0, 0, 0, 0.92, 2.15, 0, F.WOOD.walnut, String(fl * 100 + i * 2 + (s > 0 ? 1 : 2)));
+      }
+    }
+  }
+}
+
+const SPREADS = ['#7a1a22', '#2a3a5a', '#d8cca8', '#3a4a2a', '#5a2a4a'];
+
+function room(k: Kit, rf: Frame, num: number, len: number, top: number) {
+  // rf: +z toward the corridor, the outer wall at z about -3.
+  const h = (n: number) => Math.abs(Math.sin(num * 12.9 + n * 7.7)) % 1;
+  F.rug(k, rf, 0, 0.02, -0.4, 2.6, 2.8, ['#6a2a1a', '#2a3a4a', '#4a3a1a'][num % 3], '#c8a868');
+  F.bed(k, rf, -0.8, 0, -1.9, Math.PI / 2, SPREADS[num % SPREADS.length], h(1) < 0.5 ? '#2a2a2a' : F.WOOD.walnut, 1.4);
+  F.nightstand(k, rf, -0.8 + (h(2) < 0.5 ? 0 : 0), 0, -2.95 + 0.25, 0, F.WOOD.walnut, '#f0d8a8', h(3) < 0.7);
+  F.dresser(k, rf, len / 2 - 0.4, 0, 0.6, -Math.PI / 2);
+  F.armchair(k, rf, 1.2, 0, -2.2, Math.PI * 0.8, ['#5a2a18', '#2a3a2a', '#4a3a2a'][num % 3]);
+  for (let i = 0; i < 6; i++) k.ibox(rf, 1.0 + i * 0.12, 0.1, -2.95, 0.07, 0.7, 0.18, '#c8c0b0', 0.4);
+  F.picture(k, rf, -len / 2 + 0.12, 1.7, -1.9, 0.8, 0.6, Math.PI / 2, num);
+  k.ibox(rf, 0, top - 0.05, -0.5, len - 0.2, 0.04, 5.6, '#ece4d0', 0.9);
+  k.lamp(rf, 0, top - 0.5, -0.5, 5, 0.7);
+  k.cyl(rf, 0, top - 0.4, -0.5, 0.18, 0.1, 0.18, '#f0e0b8', k.lit(2.2), 10);
 }
