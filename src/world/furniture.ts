@@ -317,3 +317,8 @@ export function tv(k: Kit, fr: Frame, x: number, y: number, z: number, yaw: numb
   k.ibox(f, 0, 0, 0, 0.9, 0.55, 0.06, '#121212', 0.3);
   k.box(f, 0, 0.03, 0.035, 0.84, 0.49, 0.005, on ? '#8ab0ff' : '#0a0c10', on ? k.lit(2.2) : k.in(0.1));
 }
+
+/** One flight of carpeted stairs with a mahogany handrail on each side, climbing along local -z. */
+export function stairsRun(k: Kit, fr: Frame, x: number, y: number, z: number, w: number, rise: number, steps: number, run: number, yaw: number) {
+  k.stairs(fr, x, y, z, w, rise, steps, '#6a1a22', '#e6dcc4', run, yaw, WOOD.mahogany);
+}
