@@ -269,6 +269,37 @@ export function clown(k: Kit, fr: Frame, x: number, y: number, z: number, s: num
   }
 }
 
+const SUITS = ['#d82a2a', '#2a6ad8', '#e8c82a', '#2aa84a', '#e86ab8', '#8a3ad8', '#f0f0f0', '#ff8a1a', '#1a1a1a', '#6ad8d8'];
+const SHELF = {
+  body: new THREE.ConeGeometry(0.1, 0.2, 6).translate(0, 0.1, 0),
+  ruff: new THREE.CylinderGeometry(0.08, 0.08, 0.025, 6, 1, true),
+  head: new THREE.IcosahedronGeometry(0.06, 0),
+  nose: new THREE.TetrahedronGeometry(0.02),
+  hat: new THREE.ConeGeometry(0.045, 0.12, 4).translate(0, 0.06, 0),
+  tuft: new THREE.TetrahedronGeometry(0.04),
+};
+
+/**
+ * Cheap clown figurine for the shelves of the Clown Motel's collection: cone
+ * body, ruff, head, nose and either a hat or a wig. Scale 1 = 30 cm.
+ */
+export function shelfClown(k: Kit, fr: Frame, x: number, y: number, z: number, s: number, seed: number, yaw = 0) {
+  const h = (n: number) => hash(seed * 5.3 + n);
+  const m = fr.at(x, y, z, yaw + (h(1) - 0.5) * 0.9).multiply(new THREE.Matrix4().makeScale(s, s * (0.85 + h(2) * 0.4), s));
+  const at = (dx: number, dy: number, dz: number) => m.clone().multiply(new THREE.Matrix4().makeTranslation(dx, dy, dz));
+  const mat = k.in(0.6);
+  k.s.add(SHELF.body, m, SUITS[Math.floor(h(3) * SUITS.length)], mat, k.seed);
+  k.s.add(SHELF.ruff, at(0, 0.2, 0), '#f4f4f0', mat, k.seed);
+  k.s.add(SHELF.head, at(0, 0.27, 0), h(4) < 0.85 ? '#f4ece4' : '#e8c8a8', mat, k.seed);
+  k.s.add(SHELF.nose, at(0, 0.265, 0.058), '#e01010', mat, k.seed);
+  if (h(5) < 0.55) k.s.add(SHELF.hat, at(0, 0.315, 0), SUITS[Math.floor(h(6) * SUITS.length)], mat, k.seed);
+  else {
+    const wig = ['#ff6a1a', '#3ad84a', '#e81a1a', '#2a6ad8'][Math.floor(h(7) * 4)];
+    k.s.add(SHELF.tuft, at(0.055, 0.29, -0.01), wig, mat, k.seed);
+    k.s.add(SHELF.tuft, at(-0.055, 0.29, -0.01), wig, mat, k.seed);
+  }
+}
+
 /** Pressed-tin ceiling: a grid of raised, beaded panels with a cornice. */
 export function tinCeiling(k: Kit, fr: Frame, x: number, y: number, z: number, w: number, d: number, color = '#d8d0b8', tile = 0.61) {
   k.ibox(fr, x, y, z, w, 0.03, d, color, 0.4);
