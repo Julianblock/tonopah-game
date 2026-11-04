@@ -10,6 +10,7 @@ import { buildSignAtlas } from './signAtlas';
 import { clownCollection, clownLobby, clownOffice, clownPole, clownRooms, clownWing } from './sites/clownMotel';
 import { clownHorror } from './sites/clownHorror';
 import { stationDining, stationFloor, stationHotel, stationPylon, stationShell } from './sites/station';
+import { mines } from './sites/mines';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
 const LAMPS = 48;
@@ -29,6 +30,8 @@ export class Landmarks {
   readonly clownWing: Frame;
   /** Tonopah Station's casino frame. */
   readonly station: Frame;
+  /** Hoist house frames, one per headframe. */
+  readonly hoists: Frame[];
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -65,6 +68,7 @@ export class Landmarks {
     stationDining(k, station);
     stationPylon(k, station);
     stationHotel(k, station);
+    this.hoists = mines(k);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
