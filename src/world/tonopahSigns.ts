@@ -555,6 +555,32 @@ export const TONOPAH_SIGNS: SignSpec[] = [
     },
   },
   {
+    // Blade sign hung on the Belvada's corner.
+    name: 'belvadaBlade',
+    w: 140,
+    h: 600,
+    draw(g, w, h) {
+      g.fillStyle = '#1a1a1a';
+      g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#c49a4a';
+      g.lineWidth = 6;
+      g.strokeRect(8, 8, w - 16, h - 16);
+      'BELVADA'.split('').forEach((c, i) => neon(g, c, w / 2, 52 + i * 80, w * 0.7, (p) => `bold ${p}px ${SERIF}`, 70, '#ffe0a0'));
+    },
+  },
+  {
+    // Gilt lettering in the band over the old bank's arches.
+    name: 'belvadaBand',
+    w: 1000,
+    h: 100,
+    draw(g, w, h) {
+      g.fillStyle = '#2a1a12';
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#d8b060';
+      fitText(g, 'STATE BANK & TRUST CO. · THE BELVADA · 1906', w / 2, h * 0.55, w * 0.92, (p) => `${p}px ${SERIF}`, h * 0.5);
+    },
+  },
+  {
     // The county seal over the judge's bench.
     name: 'nyeSeal',
     w: 300,
