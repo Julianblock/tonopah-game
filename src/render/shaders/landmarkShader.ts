@@ -196,7 +196,7 @@ void main() {
   R.y = abs(R.y) + 0.02;
   vec3 refl = skyRadianceDir(normalize(R)) * mix(1.0, 0.35, uNight);
   float a = clamp(0.1 + F * 0.85, 0.0, 0.92);
-  vec3 gcol = (refl * F + vColor * 0.02) / a;
+  vec3 gcol = refl * F / a;
   outColor = vec4(applyAtmosphere(gcol, vWorld), a);
   return;
 #endif
@@ -209,7 +209,7 @@ void main() {
       col = albedo * glow * 0.12 * uInvExposure;
     } else {
       vec3 lamp = lampLight(vWorld, n) + vec3(1.0, 0.78, 0.55) * glow;
-      col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow * 0.25) * 0.22 + albedo * lamp * 0.18 * uInvExposure;
+      col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow * 0.25) * 0.22 + albedo * lamp * 0.3 * uInvExposure;
     }
   } else {
     col = shadeSurface(albedo * 0.85, n, vWorld, 1.0, rough, shadow) + emit;
