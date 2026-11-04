@@ -242,3 +242,32 @@ export function stationDining(k: Kit, c: Frame) {
   k.box(counter, -3, 1.2, -1.18, 1.6, 0.9, 0.02, '#b8c4c8', k.in(0.05, 0.5));
   k.lamp(counter, 0, 2.6, 0, 6, 0.7);
 }
+
+/** The highway pylon: the steam-engine sign over an amber LED message board. */
+export function stationPylon(k: Kit, c: Frame) {
+  k.seed = 53;
+  const o = c.p(10, 0, 10);
+  const h = k.nearestHighway(o.x, o.z);
+  const toward = new THREE.Vector2(o.x - h.px, o.z - h.pz).normalize();
+  const px = h.px + toward.x * 12, pz = h.pz + toward.y * 12;
+  const fr = k.frame(px, pz, h.tz, -h.tx);
+  const sh = 5.4, sw = k.signW('stationPylon', sh), y0 = 9;
+  for (const sx of [-sw / 3, sw / 3]) {
+    k.box(fr, sx, -0.6, 0, 0.7, y0 + sh + 1, 0.7, '#6a4a2a', { rough: 0.9 });
+    k.box(fr, sx, -0.6, 0, 1.1, 1.2, 1.1, '#8a7a66', { rough: 1 });
+  }
+  k.box(fr, 0, y0 - 0.2, 0, sw + 0.5, sh + 0.4, 0.6, '#2a1408', { rough: 0.6 });
+  k.sign(fr, 'stationPylon', 0, y0 + sh / 2, 0.31, sh, 1.4, FX.CHASE, 0, true);
+  k.sign(fr, 'stationPylon', 0, y0 + sh / 2, -0.31, sh, 1.4, FX.CHASE, Math.PI, true);
+  const bh = 1.4, bw = k.signW('stationBoard', bh);
+  k.box(fr, 0, y0 - 2.2, 0, bw + 0.3, bh + 0.3, 0.5, '#1a1a1a', { rough: 0.5 });
+  k.sign(fr, 'stationBoard', 0, y0 - 1.35, 0.26, bh, 1.8, FX.BLINK);
+  k.sign(fr, 'stationBoard', 0, y0 - 1.35, -0.26, bh, 1.8, FX.BLINK, Math.PI);
+  // A little gable roof on top, like the depot's.
+  const tri = new THREE.Shape();
+  tri.moveTo(-sw / 2 - 0.4, 0);
+  tri.lineTo(sw / 2 + 0.4, 0);
+  tri.lineTo(0, 1.4);
+  tri.closePath();
+  k.geo(fr, new THREE.ExtrudeGeometry(tri, { depth: 0.8, bevelEnabled: false }).translate(0, 0, -0.4), 0, y0 + sh + 0.2, 0, '#5a3a22', { rough: 0.9 });
+}
