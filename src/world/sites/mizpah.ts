@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Frame } from '../builders';
+import { type Frame, FX, UP } from '../builders';
 import * as F from '../furniture';
 import type { Hole, Kit } from '../kit';
 
@@ -475,4 +475,65 @@ function room(k: Kit, b: Frame, fl: number, side: 1 | -1, s: number, num: number
   // Number on the inside of the door.
   k.ibox(rf, -1.8 * m, 1.6, -3.1, 0.2, 0.1, 0.02, F.BRASS, 0.25);
   return rf;
+}
+
+/**
+ * The Mizpah's street face: the vertical neon blade at the Brougher corner with
+ * bulbs chasing round it, the bulb-lit marquee over the doors, the faded painted
+ * sign high on the side wall, gooseneck lamps and the sidewalk out front.
+ */
+export function mizpahFacade(k: Kit, b: Frame) {
+  k.seed = 27;
+  // Blade sign on iron brackets, readable up and down Main Street.
+  const bx = W / 2 - 1.0, bz = 1.25, by = 6.2, bh = 9.6;
+  const bw = k.signW('mizpahBlade', bh);
+  k.box(b, bx, by - 0.25, bz, 0.34, bh + 0.5, bw + 0.4, '#1a0c0a', { rough: 0.5, fx: FX.METAL });
+  for (const sx of [-1, 1]) {
+    const p = b.p(bx + sx * 0.18, by + bh / 2, bz);
+    k.sg.quad(p, b.f.clone().multiplyScalar(-sx), UP, bw, bh, k.rects.mizpahBlade, 1.4, FX.CHASE, k.seed, false);
+  }
+  for (const y of [by + 0.6, by + bh - 1.2]) k.box(b, bx, y, bz / 2, 0.12, 0.12, bz + 0.2, '#1a1a1a', { fx: FX.METAL });
+  k.light(b.p(bx, by + bh + 0.3, bz), 1, 0.3, 0.2, 2.2);
+
+  // Marquee canopy over the doors, hung on chains, bulbs underneath.
+  const mw = 6.4, md = 2.6, my = 3.6;
+  k.box(b, 0, my, md / 2, mw, 0.18, md, '#2a1410', { rough: 0.5 });
+  k.box(b, 0, my + 0.18, md / 2, mw, 0.9, md, '#1a0a08', { rough: 0.5 });
+  k.sign(b, 'mizpahMarquee', 0, my + 0.63, md + 0.01, 0.9, 1.2, FX.CHASE);
+  for (const sx of [-1, 1]) {
+    const side = b.sub(sx * (mw / 2 + 0.01), 0, md / 2, (sx * Math.PI) / 2);
+    k.sign(side, 'mizpahMarquee', 0, my + 0.63, 0, 0.9 * (md / k.signW('mizpahMarquee', 0.9)), 1.0, FX.CHASE);
+    k.beam(b, new THREE.Vector3(sx * (mw / 2 - 0.3), my + 1.08, md - 0.2), new THREE.Vector3(sx * (mw / 2 - 0.3), my + 3.4, 0), 0.05, '#1a1a1a', { fx: FX.METAL });
+  }
+  for (let x = -mw / 2 + 0.3; x < mw / 2; x += 0.5) {
+    for (const z of [0.5, md - 0.3]) k.box(b, x, my - 0.06, z, 0.09, 0.06, 0.09, '#fff2c8', { glow: 2.2, fx: FX.CHASE });
+  }
+  k.light(b.p(0, my - 0.2, md / 2), 1, 0.85, 0.55, 3);
+
+  // Painted ghost sign high on the Brougher wall.
+  const south = k.side(b, W / 2, -D / 2, 1);
+  k.sign(south, 'mizpahWall', 0, TOP - 1.9, 0.03, 2.4, 0);
+  // Gooseneck lamps washing the brick between the ground-floor windows.
+  for (const x of [-6.9, -2.6, 2.6, 6.9]) {
+    k.box(b, x, G0 + 0.2, 0.1, 0.08, 0.08, 0.6, '#1a1a1a', { fx: FX.METAL });
+    k.box(b, x, G0 + 0.05, 0.6, 0.3, 0.18, 0.3, '#1a1a1a', { fx: FX.METAL });
+    k.light(b.p(x, G0 - 0.05, 0.6), 1, 0.78, 0.5, 1.3);
+  }
+  for (const z of [-4, -12, -20, -28]) {
+    k.box(south, -z - D / 2, G0 + 0.05, 0.4, 0.3, 0.18, 0.5, '#1a1a1a', { fx: FX.METAL });
+    k.light(south.p(-z - D / 2, G0 - 0.05, 0.6), 1, 0.78, 0.5, 1.3);
+  }
+  // Night wash: the brick glows in the lamplight.
+  k.box(b, 0, 0.05, 0.02, W - 0.1, G0 - 0.4, 0.02, BRICK, { rough: 0.95, glow: 0.5, fx: FX.WASH });
+  k.box(south, 0, 0.05, 0.02, D - 0.1, G0 - 0.4, 0.02, BRICK, { rough: 0.95, glow: 0.5, fx: FX.WASH });
+
+  // Sidewalk, curb, a bench and the old iron hitching posts.
+  k.box(b, 0, -0.2, 3.2, W + 6, 0.22, 6.4, '#a8a29a', { rough: 0.95 });
+  k.box(b, 0, -0.2, 6.4, W + 6, 0.24, 0.25, '#d0ccc4', { rough: 0.9 });
+  F.sofa(k, b, -5.2, 0, 4.6, Math.PI, 1.6, '#3a2a1a', '#1a1a1a');
+  for (const x of [-7.5, 7.5]) {
+    k.cyl(b, x, 0, 5.8, 0.06, 0.05, 1.1, '#1a1a1a', { fx: FX.METAL }, 8);
+    k.sphere(b, x, 1.12, 5.8, 0.08, '#1a1a1a', { fx: FX.METAL }, 6);
+  }
+  k.spot(b, 0, 4, 6, 5);
 }
