@@ -542,4 +542,60 @@ export const TONOPAH_SIGNS: SignSpec[] = [
       fitText(g, 'NO SWIMMING AFTER DARK', w / 2, h * 0.78, w * 0.7, (p) => `bold ${p}px ${SANS}`, h * 0.16);
     },
   },
+  {
+    // Carved into the frieze over the portico.
+    name: 'courtFrieze',
+    w: 1000,
+    h: 90,
+    draw(g, w, h) {
+      g.fillStyle = '#d8ccb0';
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#8a7c62';
+      fitText(g, 'NYE COUNTY COURT HOUSE', w / 2, h * 0.56, w * 0.9, (p) => `${p}px ${SERIF}`, h * 0.62);
+    },
+  },
+  {
+    // The county seal over the judge's bench.
+    name: 'nyeSeal',
+    w: 300,
+    h: 300,
+    cutout: true,
+    draw(g, w, h) {
+      const r = w * 0.48;
+      g.fillStyle = '#c49a4a';
+      g.beginPath();
+      g.arc(w / 2, h / 2, r, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#1a2a4a';
+      g.beginPath();
+      g.arc(w / 2, h / 2, r * 0.8, 0, Math.PI * 2);
+      g.fill();
+      // Mountains, a headframe and the sun over the valley.
+      g.fillStyle = '#e8c860';
+      g.beginPath();
+      g.arc(w / 2, h * 0.5, r * 0.22, Math.PI, 0);
+      g.fill();
+      g.fillStyle = '#6a7a5a';
+      g.beginPath();
+      g.moveTo(w * 0.22, h * 0.62);
+      g.lineTo(w * 0.38, h * 0.42);
+      g.lineTo(w * 0.5, h * 0.54);
+      g.lineTo(w * 0.64, h * 0.38);
+      g.lineTo(w * 0.78, h * 0.62);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = '#c49a4a';
+      g.lineWidth = 4;
+      g.beginPath();
+      g.moveTo(w * 0.6, h * 0.68);
+      g.lineTo(w * 0.66, h * 0.5);
+      g.lineTo(w * 0.72, h * 0.68);
+      g.moveTo(w * 0.62, h * 0.6);
+      g.lineTo(w * 0.7, h * 0.6);
+      g.stroke();
+      g.fillStyle = '#c49a4a';
+      fitText(g, 'NYE COUNTY', w / 2, h * 0.28, w * 0.4, (p) => `bold ${p}px ${SERIF}`, 26);
+      fitText(g, 'NEVADA · 1864', w / 2, h * 0.76, w * 0.42, (p) => `bold ${p}px ${SERIF}`, 20);
+    },
+  },
 ];
