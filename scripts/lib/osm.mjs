@@ -89,7 +89,7 @@ function building(geometry) {
 
 /** The one-word kind of a point of interest, or '' for ordinary features. */
 function poiKind(t) {
-  if (t.amenity === 'grave_yard') return '';
+  if (t.amenity === 'grave_yard' || t.landuse === 'cemetery') return '';
   if (t.amenity && /^(fuel|fast_food|restaurant|casino|cafe|bar|post_office|fire_station|school|community_centre|courthouse|place_of_worship|social_facility|shelter)$/.test(t.amenity)) return t.amenity;
   if (t.shop) return 'shop';
   if (t.tourism && /^(motel|hotel|museum|viewpoint|camp_site|caravan_site|attraction|information)$/.test(t.tourism)) return t.tourism;
