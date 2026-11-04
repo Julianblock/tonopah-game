@@ -196,7 +196,15 @@ void main() {
   R.y = abs(R.y) + 0.02;
   vec3 refl = skyRadianceDir(normalize(R)) * mix(1.0, 0.35, uNight);
   float a = clamp(0.1 + F * 0.85, 0.0, 0.92);
-  vec3 gcol = refl * F / a;
+  vec3 gcol = refl * F;
+  // From the street after dark most rooms glow behind their curtains; up close
+  // you see the real room through the glass instead.
+  float dist = length(uCamPos - vWorld);
+  float roomLit = step(0.35, hash12(floor(vWorld.xz * 0.45) + floor(vWorld.y / 3.2) * 7.13));
+  float glowA = smoothstep(14.0, 40.0, dist) * uNight * roomLit;
+  gcol += vec3(1.0, 0.72, 0.42) * glowA * 0.35 * uInvExposure;
+  a = max(a, glowA * 0.9);
+  gcol /= a;
   outColor = vec4(applyAtmosphere(gcol, vWorld), a);
   return;
 #endif
