@@ -49,6 +49,7 @@ import { Precipitation } from './weather/precip';
 import { Water } from './world/water';
 import { WaterSurface } from './render/waterSurface';
 import { Ghosts } from './life/ghosts';
+import { KillerClowns } from './life/killerClowns';
 import { LadyInRed } from './life/ladyInRed';
 import { People } from './life/people';
 import { Discoveries } from './ui/discoveries';
@@ -175,6 +176,8 @@ async function boot() {
   if (ghosts) engine.scene.add(ghosts.group);
   const lady = new LadyInRed(landmarks.mizpah);
   engine.scene.add(lady.mesh);
+  const killers = graveyard ? new KillerClowns(graveyard, landmarks.clownWing.p(0, 0, 0), heightfield) : null;
+  if (killers) engine.scene.add(killers.group);
   // Mount Butler, one of the dacite plugs of the Miocene Tonopah volcanic field.
   const vent = new THREE.Vector3(-209, heightfield.height(-209, 1975) - 15, 1975);
   const volcano = new VolcanoVision(vent, { x: -300, z: 1700, r: 3200 });
@@ -228,6 +231,15 @@ async function boot() {
   };
   if (ghosts) ghosts.onSight = () => journal.discover(ghostEgg);
   lady.onSight = () => lore.reveal('lady-in-red');
+  let lastScare = -Infinity;
+  if (killers)
+    killers.onCatch = () => {
+      lore.reveal('clown-night');
+      const now = performance.now() / 1000;
+      if (now - lastScare < 25) return;
+      lastScare = now;
+      journal.whisper({ kind: 'secret', kicker: 'Clown Motel', title: 'Tag. You\u2019re it.', text: 'It reached you, grinning, and burst into nothing. Somewhere in the cemetery, it is already climbing out again.' });
+    };
   const atlas = lore.atlas();
   const eggs: Egg[] = [
     ...atlas,
@@ -795,6 +807,7 @@ async function boot() {
     flocks.setMonth(env.month);
     ghosts?.update(dt, cam, G.uNight.value);
     lady.update(dt, cam, G.uNight.value);
+    killers?.update(dt, cam, actor, G.uNight.value);
     people.update(dt, cam.position, G.uNight.value);
     volcano.update(dt, cam, window.innerHeight * engine.pixelRatio);
     landmarks.update(cam.position);
@@ -811,7 +824,7 @@ async function boot() {
         snowCover: G.uSnowCover.value,
       });
     }
-    sound.setFx(underwater ? 1 : 0, Math.max(ghosts?.presence ?? 0, lady.presence), volcano.level);
+    sound.setFx(underwater ? 1 : 0, Math.max(ghosts?.presence ?? 0, lady.presence, killers?.presence ?? 0), volcano.level);
     flocks.update(dt, cam.position, { x: air.windX, z: air.windZ });
     syncCarCasters();
     G.uHeadOn.value = car.object.visible ? car.headOn : 0;
@@ -833,7 +846,7 @@ async function boot() {
   frame();
   loading.done();
   Object.assign(window, {
-    touch, engine, env, terrain, water, waterSurface, ghosts, lady, people, volcano, journal, tour, showMap, eggs, lore, heightfield, G, player, chase, air, car, driveCam, roadIndex, fences, dust, drive, shadow, precip, cemeteries, cemeteryPlans, controls, menu, hud, places, trees, props, landmarks, lights, traffic, wildlife, flocks, sound, power, grass, roads, motes,
+    touch, engine, env, terrain, water, waterSurface, ghosts, lady, killers, people, volcano, journal, tour, showMap, eggs, lore, heightfield, G, player, chase, air, car, driveCam, roadIndex, fences, dust, drive, shadow, precip, cemeteries, cemeteryPlans, controls, menu, hud, places, trees, props, landmarks, lights, traffic, wildlife, flocks, sound, power, grass, roads, motes,
     inspectView: (a: number, h: number) => ((inspectAngle = a), (inspectHeight = h)),
     /** Renders a frame and returns it as a JPEG data URL (debug capture). */
     snap: (w = 1100, x0 = 0, y0 = 0, cw = 1, ch = 1) => {
