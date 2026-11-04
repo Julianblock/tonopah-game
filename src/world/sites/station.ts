@@ -176,3 +176,69 @@ export function stationFloor(k: Kit, c: Frame) {
   k.sign(cage, 'locoMural', 0, 3.6, 0.02, 1.25, 0.5, FX.INTERIOR);
   k.spot(c, 6, -20, 10, 8);
 }
+
+/**
+ * The north end: the Whistle Stop Bar, a long back bar under TVs and video
+ * poker set into the bar top. The south end: the Station House restaurant,
+ * plank floor, booths along the windows, a counter with stools and pie case.
+ */
+export function stationDining(k: Kit, c: Frame) {
+  k.seed = 52;
+  // Bar along the north wall, facing the floor.
+  const bar = k.side(c, CW / 2 - 0.3, -CD / 2, 1).sub(0, 0, -0.1, Math.PI);
+  F.bar(k, bar, -2, 0, 2.0, 14, 0, F.WOOD.mahogany, 1.6);
+  for (let x = -8; x <= 4; x += 1.6) {
+    const vp = bar.sub(x, 1.08, 2.15);
+    k.ibox(vp, 0, 0, 0, 0.42, 0.06, 0.3, '#1a1a1a', 0.3);
+    k.box(vp, 0, 0.06, -0.02, 0.36, 0.01, 0.22, '#5ab8ff', k.lit(2.6));
+  }
+  for (const x of [-7, -2, 3]) F.tv(k, bar, x, 2.9, 0.15, 0, true);
+  k.sign(bar, 'stationBar', -2, 3.75, 0.2, 0.42, 1.4, FX.INTERIOR);
+  for (const x of [-7, -2, 3]) k.lamp(bar, x, 2.6, 1.6, 4.5, 0.6, '#ffc890');
+
+  // Restaurant behind a half wall at the south end.
+  const rx = -16;
+  k.ibox(c, rx, 0, -24, 0.2, 1.1, 22, '#4a2a16', 0.5);
+  k.ibox(c, rx, 1.1, -24, 0.3, 0.06, 22.2, '#6a4a2a', 0.4);
+  for (let z = -13; z > -35; z -= 2.2) k.ibox(c, rx, 1.16, z, 0.06, 1.2, 0.06, '#6a4a2a', 0.4);
+  const inside = c.sub(rx - 0.15, 0, -6.8, -Math.PI / 2);
+  k.sign(inside, 'stationHouse', 0, 3.2, -0.02, 0.5, 1.3, FX.INTERIOR, Math.PI);
+  for (let x = -CW / 2 + 0.3; x < rx - 0.1; x += 0.2) k.ibox(c, x + 0.1, 0, -CD / 2, 0.19, 0.012, CD - 0.6, ['#7a5230', '#6a4628', '#82583a'][Math.round(x * 5) % 3 < 0 ? 0 : Math.round(x * 5) % 3], 0.6);
+  // Booths under the front windows.
+  for (let i = 0; i < 4; i++) {
+    const bx = -28 + i * 3.6;
+    const bf = c.sub(bx, 0, -1.6);
+    for (const sz of [-0.75, 0.75]) {
+      k.ibox(bf, 0, 0, sz, 1.5, 0.45, 0.5, '#8a1a1a', 0.8);
+      k.ibox(bf, 0, 0.45, sz + Math.sign(sz) * 0.2, 1.5, 0.65, 0.12, '#8a1a1a', 0.8);
+    }
+    F.table(k, bf, 0, 0, 0, 1.3, 0.8, '#d8c8a8', F.WOOD.black, 0.74);
+    k.cyl(bf, 0.3, 0.74, 0, 0.04, 0.04, 0.12, '#d8d8d8', k.in(0.3), 6);
+    k.lamp(bf, 0, 2.2, 0, 3, 0.45);
+    k.cyl(bf, 0, CEIL - 1.0, 0, 0.18, 0.08, 0.2, '#c87a2a', k.lit(2.4), 10);
+    k.cyl(bf, 0, CEIL - 0.8, 0, 0.005, 0.005, 0.8, '#1a1a1a', k.in(0.5), 3);
+  }
+  // Tables down the middle, the counter and pie case at the back.
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 2; j++) {
+      const tx = -27 + i * 4, tz = -9 - j * 4;
+      F.table(k, c, tx, 0, tz, 1.0, 1.0, '#d8c8a8', F.WOOD.black, 0.74, 0, '#f4f0e8');
+      for (const [sx, sz, a] of [[0, 0.8, Math.PI], [0, -0.8, 0], [0.8, 0, -Math.PI / 2], [-0.8, 0, Math.PI / 2]] as const) F.chair(k, c, tx + sx, 0, tz + sz, a, F.WOOD.oak, '#8a1a1a');
+      k.lamp(c, tx, 2.6, tz, 4, 0.5);
+    }
+  }
+  const counter = c.sub(-24, 0, -31);
+  k.ibox(counter, 0, 0, 0, 12, 1.0, 0.7, '#8a5a32', 0.5);
+  k.ibox(counter, 0, 1.0, 0, 12.2, 0.05, 0.85, '#e8e0d0', 0.3);
+  for (let x = -5.4; x <= 5.4; x += 0.9) F.stool(k, counter, x, 0, 0.8, '#8a1a1a', '#c8c8c8');
+  const pie = counter.sub(4, 1.05, -0.05);
+  k.ibox(pie, 0, 0, 0, 1.2, 0.04, 0.5, '#c8c8c8', 0.3);
+  for (let t = 0; t < 2; t++) {
+    for (let i = 0; i < 3; i++) k.cyl(pie, -0.4 + i * 0.4, 0.05 + t * 0.25, 0, 0.15, 0.15, 0.06, ['#c8803a', '#8a1a2a', '#e8d8a0'][i], k.in(0.8), 12);
+    k.ibox(pie, 0, 0.2 + t * 0.25, 0, 1.2, 0.02, 0.5, '#e8f0f0', 0.1);
+  }
+  k.pane(pie, 0, 0.27, 0.25, 1.2, 0.5);
+  k.ibox(counter, 0, 0, -1.5, 12, 2.4, 0.6, '#6a4a2a', 0.5);
+  k.box(counter, -3, 1.2, -1.18, 1.6, 0.9, 0.02, '#b8c4c8', k.in(0.05, 0.5));
+  k.lamp(counter, 0, 2.6, 0, 6, 0.7);
+}
