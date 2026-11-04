@@ -169,6 +169,38 @@ function dollRoom(k: Kit, b: Frame) {
   k.sphere(rf, -1.65, 0.95, -5.45, 0.05, '#ffd0a0', k.lit(3), 6);
 }
 
+/** A slasher's white hockey mask hung on a nail: an oval with eye holes, vents and red chevrons. */
+function hockeyMask(k: Kit, fr: Frame, x: number, y: number, z: number, yaw: number) {
+  const f = fr.sub(x, y, z, yaw);
+  k.geo(f, new THREE.SphereGeometry(0.12, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2).scale(1, 1.35, 0.5), 0, 0, 0, '#f0eee4', k.in(0.4));
+  for (const sx of [-0.045, 0.045]) k.ibox(f, sx, 0.03, 0.055, 0.035, 0.022, 0.01, '#0a0a0a', 0.5);
+  for (let i = 0; i < 9; i++) k.sphere(f, ((i % 3) - 1) * 0.03, -0.04 - Math.floor(i / 3) * 0.028, 0.055, 0.007, '#0a0a0a', k.in(0.5), 4);
+  for (const sx of [-1, 1]) {
+    for (let i = 0; i < 2; i++) k.ibox(f, sx * 0.075, 0.07 - i * 0.03, 0.05, 0.03, 0.006, 0.01, '#c81a1a', 0.5, sx * 0.6);
+  }
+}
+
+/**
+ * 201, the summer-camp room: the mask on the wall, a machete stuck in the
+ * headboard, the camp's sign, a canoe paddle and a lantern by the bed.
+ */
+function campRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 201);
+  const wallR = rf.sub(RW / 2 - 0.1, 0, -4.3, -Math.PI / 2);
+  hockeyMask(k, wallR, -1.05, 1.45, 0.02, 0);
+  k.sign(wallR, 'crystalLake', 0.15, 2.3, 0.01, 0.3, 0.3, FX.INTERIOR);
+  const mach = rf.sub(-1.85, 1.0, -4.0, Math.PI / 2);
+  k.ibox(mach, 0, 0, 0.1, 0.012, 0.1, 0.5, '#9aa0a4', 0.15, 0);
+  k.ibox(mach, 0, 0.01, 0.42, 0.035, 0.06, 0.16, '#3a2a1a', 0.7);
+  k.ibox(rf, -1.88, 0, -6.6, 0.04, 1.4, 0.16, '#8a6a3a', 0.6);
+  k.ibox(rf, -1.88, 1.3, -6.6, 0.03, 0.3, 0.2, '#8a6a3a', 0.6);
+  const lan = rf.sub(-1.65, 0.6, -5.45);
+  k.cyl(lan, 0, 0, 0, 0.07, 0.07, 0.03, '#2a4a2a', k.in(0.4), 8);
+  k.cyl(lan, 0, 0.03, 0, 0.05, 0.05, 0.14, '#ffc870', k.lit(3), 8);
+  k.cyl(lan, 0, 0.17, 0, 0.06, 0.03, 0.05, '#2a4a2a', k.in(0.4), 8);
+  k.lamp(lan, 0, 0.3, 0.2, 3.5, 0.5, '#ffb060');
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -178,5 +210,6 @@ export function clownHorror(k: Kit, b: Frame) {
   halloweenRoom(k, b);
   staticRoom(k, b);
   dollRoom(k, b);
+  campRoom(k, b);
   k.fill = FILL;
 }
