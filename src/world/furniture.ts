@@ -283,22 +283,17 @@ export function tinCeiling(k: Kit, fr: Frame, x: number, y: number, z: number, w
   }
 }
 
-/** Old cage elevator: brass lattice gate, a car with a lit dome. */
-export function elevator(k: Kit, fr: Frame, x: number, y: number, z: number, yaw: number, floors: number, floorH: number) {
+/** Old cage elevator: brass lattice gates at each landing, a car with a lit dome on the ground floor. */
+export function elevator(k: Kit, fr: Frame, x: number, y: number, z: number, yaw: number, landings: number[]) {
   const f = fr.sub(x, y, z, yaw);
   const w = 1.6, d = 1.6;
-  for (let fl = 0; fl < floors; fl++) {
-    const fy = fl * floorH;
-    for (let i = 0; i <= 10; i++) {
-      const px = -w / 2 + (i * w) / 10;
-      k.ibox(f, px, fy, d / 2, 0.025, 2.3, 0.025, BRASS, 0.25);
-    }
+  for (const fy of landings) {
+    for (let i = 0; i <= 10; i++) k.ibox(f, -w / 2 + (i * w) / 10, fy, d / 2, 0.025, 2.3, 0.025, BRASS, 0.25);
     for (let i = 0; i < 5; i++) k.beam(f, new THREE.Vector3(-w / 2, fy + 0.2 + i * 0.45, d / 2), new THREE.Vector3(w / 2, fy + 0.65 + i * 0.45, d / 2), 0.02, BRASS, k.in(0.25));
     k.ibox(f, 0, fy + 2.3, d / 2, w + 0.2, 0.35, 0.08, BRASS, 0.25);
     // Floor indicator dial above the gate.
     k.cyl(f, 0, fy + 2.75, d / 2 + 0.02, 0.22, 0.22, 0.02, '#f0e0b0', k.lit(1.8), 14);
   }
-  // The car itself waits on the ground floor.
   k.ibox(f, 0, 0, 0, w - 0.1, 0.1, d - 0.1, '#5a3a20', 0.5);
   for (const sx of [-1, 1]) k.ibox(f, sx * (w / 2 - 0.05), 0, 0, 0.04, 2.3, d - 0.1, '#5a3a20', 0.5);
   k.ibox(f, 0, 0, -d / 2 + 0.05, w - 0.1, 2.3, 0.04, '#5a3a20', 0.5);
