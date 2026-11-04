@@ -9,6 +9,7 @@ import type { OsmData } from './meta';
 import { buildSignAtlas } from './signAtlas';
 import { clownCollection, clownLobby, clownOffice, clownPole, clownRooms, clownWing } from './sites/clownMotel';
 import { clownHorror } from './sites/clownHorror';
+import { stationFloor, stationShell } from './sites/station';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
 const LAMPS = 48;
@@ -26,6 +27,8 @@ export class Landmarks {
   /** The Clown Motel's office and room block frames. */
   readonly clownOffice: Frame;
   readonly clownWing: Frame;
+  /** Tonopah Station's casino frame. */
+  readonly station: Frame;
   private solidMat: THREE.ShaderMaterial;
   private shadowMat: THREE.ShaderMaterial;
   private solidGeo: THREE.BufferGeometry;
@@ -57,6 +60,8 @@ export class Landmarks {
     const wing = (this.clownWing = clownWing(k));
     clownRooms(k, wing);
     clownHorror(k, wing);
+    const station = (this.station = stationShell(k));
+    stationFloor(k, station);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({
