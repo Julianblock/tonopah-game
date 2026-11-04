@@ -289,6 +289,43 @@ function dreamRoom(k: Kit, b: Frame) {
   k.box(rf, 1.5, RH - 0.8, -2.1, 0.3, 0.3, 0.2, '#ff7a3a', k.lit(2.2));
 }
 
+/**
+ * 213, the puzzle room: a grimy tiled bathroom gone through to the bedroom,
+ * a pipe with a chain and a rusty shackle, a hacksaw on the floor, a cassette
+ * player on the bed and the puppet on its red tricycle.
+ */
+function puzzleRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 213);
+  for (let i = 0; i < 12; i++) {
+    for (let j = 0; j < 7; j++) k.ibox(rf, -1.85 + i * 0.32, 0.05 + j * 0.32, -9.67, 0.3, 0.3, 0.01, (i * 7 + j * 3) % 5 ? '#c8ccb0' : '#8a8a60', 0.3);
+  }
+  k.geo(rf, new THREE.CylinderGeometry(0.04, 0.04, 2.2, 8), 0.9, 1.1, -9.5, '#5a4030', k.in(0.4));
+  for (let i = 0; i < 10; i++) k.geo(rf, new THREE.TorusGeometry(0.035, 0.008, 4, 8).rotateY((i % 2) * Math.PI / 2), 0.9 - i * 0.02, 0.45 - i * 0.04, -9.4 + i * 0.07, '#6a5040', k.in(0.4));
+  k.geo(rf, new THREE.TorusGeometry(0.06, 0.015, 6, 10).rotateX(Math.PI / 2), 0.7, 0.02, -8.7, '#6a3a20', k.in(0.4));
+  k.ibox(rf, 0.2, 0.012, -8.4, 0.35, 0.01, 0.1, '#6a6a6a', 0.3, 0.8);
+  k.ibox(rf, -0.6, 0.62, -4.2, 0.12, 0.04, 0.08, '#1a1a1a', 0.4, 0.3);
+  // The puppet: white face, red spirals on the cheeks, black suit, on a red tricycle.
+  const p = rf.sub(0.6, 0, -2.6, Math.PI * 0.85);
+  k.geo(p, new THREE.TorusGeometry(0.15, 0.03, 6, 12).rotateY(Math.PI / 2), 0, 0.15, 0.25, '#1a1a1a', k.in(0.6));
+  for (const sx of [-0.18, 0.18]) k.geo(p, new THREE.TorusGeometry(0.08, 0.02, 6, 10).rotateY(Math.PI / 2), sx, 0.08, -0.15, '#1a1a1a', k.in(0.6));
+  k.ibox(p, 0, 0.12, 0.05, 0.05, 0.05, 0.4, '#c81a1a', 0.4);
+  k.ibox(p, 0, 0.1, -0.15, 0.4, 0.04, 0.05, '#c81a1a', 0.4);
+  k.cyl(p, 0, 0.12, 0.25, 0.015, 0.015, 0.35, '#c81a1a', k.in(0.4), 6);
+  k.ibox(p, 0, 0.47, 0.25, 0.3, 0.02, 0.02, '#c8c8c8', 0.2);
+  k.ibox(p, 0, 0.3, -0.05, 0.18, 0.25, 0.12, '#1a1a1a', 0.8);
+  for (const sx of [-0.06, 0.06]) k.ibox(p, sx, 0.18, 0.05, 0.05, 0.05, 0.18, '#1a1a1a', 0.8);
+  k.ibox(p, 0, 0.5, 0.0, 0.05, 0.04, 0.02, '#c81a1a', 0.6);
+  k.sphere(p, 0, 0.66, -0.04, 0.1, '#f4f4f0', k.in(0.5), 10);
+  k.sphere(p, 0, 0.7, -0.07, 0.1, '#1a1a1a', k.in(0.9), 10);
+  for (const sx of [-0.035, 0.035]) {
+    k.sphere(p, sx, 0.68, 0.05, 0.015, '#c81a1a', k.lit(2.2), 6);
+    k.sphere(p, sx * 1.7, 0.63, 0.045, 0.02, '#c81a1a', k.in(0.6), 6);
+  }
+  k.ibox(p, 0, 0.6, 0.06, 0.06, 0.008, 0.005, '#c81a1a', 0.6);
+  k.lamp(rf, 0, RH - 0.5, -6, 4, 0.5, '#d8ffb0');
+  k.box(rf, 0, RH - 0.36, -6, 0.15, 0.04, 1.0, '#e0ffd0', k.lit(2.6));
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -302,5 +339,6 @@ export function clownHorror(k: Kit, b: Frame) {
   showerRoom(k, b);
   exorcistRoom(k, b);
   dreamRoom(k, b);
+  puzzleRoom(k, b);
   k.fill = FILL;
 }
