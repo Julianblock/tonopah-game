@@ -14,6 +14,7 @@ const PLASTER = '#ece4d4';
 const W = 40;
 const D = 18;
 const H = 4.6;
+const RUST = '#7a4a2e';
 
 /** Museum frame on its floor: x along the front, z out toward the yard and road. */
 export function museumShell(k: Kit): Frame {
@@ -97,4 +98,64 @@ export function museumHall(k: Kit, b: Frame) {
   }
   k.ibox(af, -0.5, 1.8, 1.6, 2.8, 0.04, 0.04, '#3a3a3a', 0.4);
   k.ibox(af, -4.5, 1.0, -3.5, 2.4, 1.6, 0.04, '#d8d0a8', 0.8);
+}
+
+/**
+ * The yard out front: a five-stamp mill under its frame, ore cars on a length of
+ * track, a hoist, a stagecoach and the miner's cabin.
+ */
+export function museumYard(k: Kit, b: Frame) {
+  k.seed = 92;
+  const yard = b.sub(W / 2 + 12, 0, -4);
+  const ground = (x: number, z: number) => {
+    const p = yard.p(x, 0, z);
+    return k.hf.height(p.x, p.z) - yard.o.y;
+  };
+  k.block(yard, -10, 12, -14, 14);
+  // Stamp mill: a timber frame, five stems, the cam shaft and the mortar box.
+  const mill = yard.sub(-4, ground(-4, 4), 4);
+  for (const x of [-1.8, 1.8]) for (const z of [-0.8, 0.8]) k.box(mill, x, -0.5, z, 0.35, 6.5, 0.35, F.WOOD.walnut, { rough: 1 });
+  for (const y of [2.2, 4.0, 5.8]) k.box(mill, 0, y, 0, 4.0, 0.3, 1.9, F.WOOD.walnut, { rough: 1 });
+  k.box(mill, 0, 0, 0.1, 3.4, 1.2, 1.2, '#3a3632', { fx: FX.METAL });
+  for (let i = 0; i < 5; i++) {
+    const x = -1.2 + i * 0.6;
+    k.cyl(mill, x, 1.2, 0.1, 0.07, 0.07, 4.8, '#5a5650', { fx: FX.METAL }, 8);
+    k.cyl(mill, x, 3.0 + (i % 2) * 0.2, 0.1, 0.15, 0.15, 0.3, '#3a3632', { fx: FX.METAL }, 10);
+  }
+  k.geo(mill, new THREE.CylinderGeometry(0.12, 0.12, 4.4, 10).rotateZ(Math.PI / 2), 0, 3.6, -0.5, '#3a3632', { fx: FX.METAL });
+  k.geo(mill, new THREE.CylinderGeometry(1.0, 1.0, 0.25, 20).rotateZ(Math.PI / 2), 2.5, 3.6, -0.5, RUST, { fx: FX.METAL });
+  // Ore cars on a short run of track.
+  const track = yard.sub(4, 0, 6, Math.PI / 2);
+  for (let x = -6; x <= 6; x += 0.6) k.box(track, x, ground(4, 6) - 0.05, 0, 0.18, 0.1, 1.2, F.WOOD.walnut, { rough: 1 });
+  for (const z of [-0.3, 0.3]) k.box(track, 0, ground(4, 6) + 0.05, z, 12.4, 0.08, 0.06, '#3a3632', { fx: FX.METAL });
+  for (const x of [-3.5, -1.5, 1.5]) {
+    const car = track.sub(x, ground(4, 6) + 0.13, 0);
+    k.box(car, 0, 0.25, 0, 1.4, 0.75, 0.9, RUST, { fx: FX.METAL });
+    k.box(car, 0, 0.9, 0, 1.2, 0.12, 0.7, '#5a5048', { rough: 1 });
+    for (const wx of [-0.45, 0.45]) for (const wz of [-0.32, 0.32]) k.geo(car, new THREE.CylinderGeometry(0.17, 0.17, 0.08, 12).rotateX(Math.PI / 2), wx, 0.17, wz, '#2a2622', { fx: FX.METAL });
+  }
+  // The miner's cabin: board walls, a tin roof, a stovepipe.
+  const cabin = yard.sub(6, ground(6, -8), -8);
+  const cw = 4.2, cd = 3.6;
+  k.wall(cabin, -cw / 2, cw / 2, 0, -0.2, 2.4, 0.15, '#7a5e42', '#9a7e5e', [{ x: -0.6, y: 0, w: 0.85, h: 1.9 }, { x: 1.1, y: 0.9, w: 0.7, h: 0.6, glass: true }], { rough: 1 });
+  k.wall(cabin.sub(0, 0, -cd, Math.PI), -cw / 2, cw / 2, 0, -0.2, 2.4, 0.15, '#7a5e42', '#9a7e5e', [], { rough: 1 });
+  for (const o of [-1, 1] as const) k.wall(k.side(cabin, (o * cw) / 2, -cd / 2, o), -cd / 2, cd / 2, 0, -0.2, 2.4, 0.15, '#7a5e42', '#9a7e5e', [], { rough: 1 });
+  for (const s of [-1, 1]) k.box(cabin, (s * cw) / 4, 2.4, -cd / 2, cw / 2 + 0.5, 0.06, cd + 0.6, '#7a7468', { fx: FX.METAL }, 0);
+  k.cyl(cabin, 1.2, 2.2, -2.6, 0.08, 0.08, 1.4, '#2a2622', { fx: FX.METAL }, 8);
+  F.bed(k, cabin, -1.3, 0, -2.2, Math.PI / 2, '#6a4a3a', F.WOOD.pine, 0.9);
+  k.ibox(cabin, 1.2, 0, -2.6, 0.6, 0.7, 0.5, '#1a1a18', 0.5);
+  F.table(k, cabin, 0.7, 0, -1.0, 0.8, 0.6, F.WOOD.pine, F.WOOD.pine, 0.74);
+  k.lamp(cabin, 0, 2.0, -1.8, 3, 0.4);
+  // A hoist engine and a stagecoach under the sky.
+  const hoist = yard.sub(-6, ground(-6, -6), -6);
+  k.box(hoist, 0, 0, 0, 3, 0.6, 1.6, '#3a3632', { fx: FX.METAL });
+  k.geo(hoist, new THREE.CylinderGeometry(0.6, 0.6, 1.4, 16).rotateX(Math.PI / 2), 0.4, 1.2, 0, '#2a2622', { fx: FX.METAL });
+  k.cyl(hoist, -1.0, 0.6, 0, 0.35, 0.35, 1.6, RUST, { fx: FX.METAL }, 12);
+  const coach = yard.sub(0, ground(0, -10), -11, 0.4);
+  k.box(coach, 0, 0.9, 0, 1.6, 1.5, 3.0, '#6a2a1a', { rough: 0.8 });
+  k.box(coach, 0, 2.4, 0, 1.7, 0.08, 3.2, '#2a1a10', { rough: 0.8 });
+  for (const z of [-1.1, 1.1]) for (const x of [-0.85, 0.85]) {
+    const r = z > 0 ? 0.75 : 0.55;
+    k.geo(coach, new THREE.TorusGeometry(r, 0.04, 4, 18).rotateY(Math.PI / 2), x, r, z, '#c8a040', { rough: 0.7 });
+  }
 }
