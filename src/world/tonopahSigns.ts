@@ -329,4 +329,80 @@ export const TONOPAH_SIGNS: SignSpec[] = [
     },
   },
   ...CLOWN_ART,
+  {
+    // Scrawled in red over the bed in the balloon room.
+    name: 'floatWall',
+    w: 600,
+    h: 200,
+    cutout: true,
+    draw(g, w, h) {
+      g.fillStyle = '#a80a14';
+      g.save();
+      g.translate(w / 2, h / 2);
+      g.rotate(-0.06);
+      fitText(g, 'we all float', 0, 0, w * 0.92, (p) => `${p}px ${SCRIPT}`, h * 0.7);
+      g.restore();
+      for (let i = 0; i < 14; i++) {
+        const x = 60 + ((i * 97) % (w - 120));
+        g.fillRect(x, h * 0.62, 3, 20 + ((i * 37) % 50));
+      }
+    },
+  },
+  {
+    name: 'redrum',
+    w: 400,
+    h: 120,
+    cutout: true,
+    draw(g, w, h) {
+      g.fillStyle = '#b00a14';
+      fitText(g, 'REDRUM', w / 2, h / 2, w * 0.9, (p) => `bold ${p}px ${SANS}`, h * 0.75);
+    },
+  },
+  {
+    // Snow on a dead channel, four frames cycling.
+    name: 'tvStatic',
+    w: 160,
+    h: 120,
+    frames: 4,
+    draw(g, w, h, f) {
+      for (let y = 0; y < h; y += 2) {
+        for (let x = 0; x < w; x += 2) {
+          const v = Math.abs(Math.sin(x * 12.9898 + y * 78.233 + f * 37.719) * 43758.5453) % 1;
+          const c = Math.floor(60 + v * 195);
+          g.fillStyle = `rgb(${c},${c},${Math.min(255, c + 20)})`;
+          g.fillRect(x, y, 2, 2);
+        }
+      }
+    },
+  },
+  {
+    name: 'goodGuys',
+    w: 240,
+    h: 360,
+    draw(g, w, h) {
+      g.fillStyle = '#1a4ad0';
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#f0c828';
+      g.fillRect(12, 12, w - 24, h * 0.22);
+      g.fillStyle = '#d81a1a';
+      fitText(g, 'GOOD GUYS', w / 2, h * 0.13, w * 0.86, (p) => `${p}px ${BLACK}`, h * 0.11);
+      g.fillStyle = '#e8f0f8';
+      g.fillRect(30, h * 0.3, w - 60, h * 0.6);
+      g.fillStyle = '#f8f8f4';
+      fitText(g, 'FRIEND TO THE END', w / 2, h * 0.95, w * 0.86, (p) => `bold ${p}px ${SANS}`, h * 0.05);
+    },
+  },
+  {
+    name: 'crystalLake',
+    w: 640,
+    h: 160,
+    draw(g, w, h) {
+      g.fillStyle = '#3a2a1a';
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = '#e8dcc0';
+      fitText(g, 'CAMP CRYSTAL LAKE', w / 2, h * 0.4, w * 0.88, (p) => `bold ${p}px ${SERIF}`, h * 0.4);
+      g.fillStyle = '#c8a070';
+      fitText(g, 'NO SWIMMING AFTER DARK', w / 2, h * 0.78, w * 0.7, (p) => `bold ${p}px ${SANS}`, h * 0.16);
+    },
+  },
 ];
