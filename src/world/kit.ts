@@ -95,16 +95,18 @@ export class Kit {
     return best;
   }
 
-  /** Lowest ground under a footprint relative to the frame origin, for foundations on slopes. */
-  footDrop(fr: Frame, x0: number, x1: number, z0: number, z1: number) {
-    let lo = 0;
-    for (let i = 0; i <= 4; i++) {
-      for (let j = 0; j <= 4; j++) {
-        const p = fr.p(x0 + ((x1 - x0) * i) / 4, 0, z0 + ((z1 - z0) * j) / 4);
-        lo = Math.min(lo, this.hf.height(p.x, p.z) - fr.o.y);
+  /** Lowest and highest ground under a footprint relative to the frame origin, for floors on slopes. */
+  footRange(fr: Frame, x0: number, x1: number, z0: number, z1: number): [number, number] {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i <= 6; i++) {
+      for (let j = 0; j <= 6; j++) {
+        const p = fr.p(x0 + ((x1 - x0) * i) / 6, 0, z0 + ((z1 - z0) * j) / 6);
+        const h = this.hf.height(p.x, p.z) - fr.o.y;
+        lo = Math.min(lo, h);
+        hi = Math.max(hi, h);
       }
     }
-    return lo - 0.3;
+    return [lo, hi];
   }
 
   // --- solids ----------------------------------------------------------------------
