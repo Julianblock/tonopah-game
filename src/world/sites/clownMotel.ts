@@ -293,3 +293,53 @@ export function clownPole(k: Kit, office: Frame) {
     k.light(fr.p(sx * (sw / 2 - 0.4), y0 - 0.4, 1.4), 1, 0.92, 0.8, 1.6);
   }
 }
+
+/** Room `num`'s frame: x across the room, z out the door, y up from its floor. */
+export const roomFrame = (b: Frame, num: number) => b.sub(roomX((num % 100) - 1), Math.floor(num / 100 - 1) * RH, 0);
+
+/**
+ * Every guest room, 1980s motel and all clown: shag carpet, a bed under a
+ * clown portrait with another clown waiting on the pillow, a dresser with the
+ * TV and a shelf of figurines, a table by the window, a bathroom at the back.
+ */
+export function clownRooms(k: Kit, b: Frame) {
+  k.seed = 45;
+  for (let fl = 0; fl < 2; fl++) {
+    for (let i = 0; i < ROOMS; i++) {
+      const num = (fl + 1) * 100 + i + 1;
+      const rf = roomFrame(b, num);
+      const h = (n: number) => Math.abs(Math.sin(num * 12.9898 + n * 78.233) * 43758.5453) % 1;
+      if (i < ROOMS - 1) k.ibox(rf, RW / 2, 0, -RD / 2, 0.16, RH - 0.02, RD - 0.6, ['#f4e8c8', '#f4d8d8', '#d8e4f4', '#e4f0d8'][Math.floor(h(1) * 4)], 0.9);
+      k.ibox(rf, 0, 0.005, -RD / 2, RW - 0.16, 0.02, RD - 0.6, ['#b8642a', '#6a4a2a', '#2a6a6a', '#8a2a2a', '#7a6a3a'][Math.floor(h(2) * 5)], 1);
+      k.ibox(rf, 0, RH - 0.32, -RD / 2, RW - 0.16, 0.02, RD - 0.6, '#f4f0e6', 0.95);
+      // Bathroom: partition, tub under the high window, toilet, vanity and mirror.
+      k.ibox(rf, -0.5, 0, -7.6, RW - 1.1, RH - 0.32, 0.1, '#f0f0e8', 0.8);
+      k.ibox(rf, 0, 0.01, -8.7, RW - 0.2, 0.01, 2.1, '#e8f0f0', 0.3);
+      k.ibox(rf, -1.15, 0, -9.3, 1.5, 0.55, 0.75, '#f8f8f4', 0.2);
+      k.ibox(rf, -1.15, 0.45, -9.3, 1.36, 0.08, 0.6, '#c8d8e0', 0.1);
+      k.ibox(rf, 0.45, 0, -9.45, 0.38, 0.42, 0.55, '#f8f8f4', 0.2);
+      k.ibox(rf, 0.45, 0.42, -9.62, 0.4, 0.4, 0.2, '#f8f8f4', 0.2);
+      k.ibox(rf, 1.3, 0, -8.2, 0.9, 0.85, 0.5, '#d8c8b0', 0.5);
+      k.box(rf, 1.3, 1.1, -7.53, 0.8, 0.8, 0.02, '#b8c4c8', k.in(0.05, 0.5));
+      // Bed against the party wall, a clown portrait over it and one on the pillow.
+      const spread = ['#d81a1a', '#2a5ad0', '#f0c828', '#8a3ad8', '#e86ab8', '#2aa84a'][Math.floor(h(3) * 6)];
+      F.bed(k, rf, -0.9, 0, -4.3, Math.PI / 2, spread, F.WOOD.oak, 1.5);
+      for (let d = 0; d < 6; d++) k.ibox(rf, -0.9 + (d - 2.5) * 0.3, 0.59, -4.3, 0.12, 0.005, 1.5, '#f8f8f4', 0.9);
+      const wallL = rf.sub(-RW / 2 + 0.09, 0, -4.3, Math.PI / 2);
+      k.sign(wallL, `clownArt${Math.floor(h(4) * 6)}`, 0, 1.75, 0.01, 0.75, 0.4, FX.INTERIOR);
+      F.clown(k, rf, -1.55, 0.62, -4.0, 1.7, num, Math.PI / 2);
+      F.nightstand(k, rf, -1.65, 0, -5.45, Math.PI / 2, F.WOOD.oak, '#f8e8c0', true);
+      // Dresser and TV on the far wall, a shelf of clowns above.
+      F.dresser(k, rf, RW / 2 - 0.35, 0, -4.3, -Math.PI / 2, F.WOOD.oak, false);
+      F.tv(k, rf, RW / 2 - 0.4, 0.85, -4.3, -Math.PI / 2, h(5) < 0.3);
+      k.ibox(rf, RW / 2 - 0.2, 1.75, -4.3, 0.22, 0.03, 1.4, F.WOOD.oak, 0.5);
+      for (let c = 0; c < 6; c++) F.shelfClown(k, rf, RW / 2 - 0.2, 1.78, -4.9 + c * 0.24, 0.7, num * 7 + c, -Math.PI / 2);
+      // Table and two chairs at the window, a ceiling light.
+      F.roundTable(k, rf, 0.8, 0, -1.3, 0.38, F.WOOD.oak, 0.72);
+      F.chair(k, rf, 0.2, 0, -1.4, Math.PI / 2, F.WOOD.oak, '#c8a040');
+      F.chair(k, rf, 1.4, 0, -1.5, -Math.PI / 2, F.WOOD.oak, '#c8a040');
+      k.cyl(rf, 0, RH - 0.42, -3.8, 0.25, 0.18, 0.1, '#fff4dc', k.lit(2.4), 12);
+      k.lamp(rf, 0, RH - 0.6, -3.8, 5.5, 0.8);
+    }
+  }
+}
