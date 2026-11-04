@@ -265,6 +265,30 @@ function exorcistRoom(k: Kit, b: Frame) {
   for (const sx of [-1, 1]) k.geo(st, new THREE.BoxGeometry(0.01, 0.1, 0.06).rotateZ(sx * 0.7), sx * 0.05, 0.18, -0.02, '#4a4a3a', k.in(0.7));
 }
 
+/**
+ * 210, the dream room: a red-and-green striped sweater over the chair, a
+ * battered brown fedora on the bedpost, the bladed glove on the dresser,
+ * four long slashes through the wallpaper and the boiler pipes overhead.
+ */
+function dreamRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 210);
+  for (let i = 0; i < 6; i++) k.ibox(rf, 0.2 + (i % 2) * 0.003, 0.25 + i * 0.07, -1.4, 0.04, 0.07, 0.42, i % 2 ? '#2a6a2a' : '#a81a1a', 0.9, Math.PI / 2);
+  const hat = rf.sub(-1.85, 1.3, -3.6);
+  k.cyl(hat, 0, 0, 0, 0.18, 0.18, 0.015, '#4a3424', k.in(0.95), 12);
+  k.cyl(hat, 0, 0.015, 0, 0.1, 0.11, 0.12, '#4a3424', k.in(0.95), 10);
+  const glove = rf.sub(1.6, 0.85, -4.9, -Math.PI / 2);
+  k.ibox(glove, 0, 0, 0, 0.12, 0.04, 0.16, '#5a3a1a', 0.8);
+  for (let i = 0; i < 4; i++) k.ibox(glove, -0.045 + i * 0.03, 0.02, 0.2, 0.006, 0.008, 0.24, '#c8ccd0', 0.1);
+  const wallL = rf.sub(-RW / 2 + 0.1, 0, -6.0, Math.PI / 2);
+  for (let i = 0; i < 4; i++) k.ibox(wallL, -0.3 + i * 0.1, 0.8, 0.01, 0.025, 1.3, 0.005, '#2a0a0a', 0.9, 0.25);
+  for (const z of [-2.0, -2.25]) {
+    k.cyl(rf, 0, RH - 0.5, z, 0.06, 0.06, 0.01, '#5a3a2a', k.in(0.5), 6);
+    k.geo(rf, new THREE.CylinderGeometry(0.06, 0.06, RW - 0.2, 8).rotateZ(Math.PI / 2), 0, RH - 0.45, z, '#5a4030', k.in(0.4));
+  }
+  k.lamp(rf, 0, RH - 0.6, -2.1, 3.5, 0.45, '#ff6a2a');
+  k.box(rf, 1.5, RH - 0.8, -2.1, 0.3, 0.3, 0.2, '#ff7a3a', k.lit(2.2));
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -277,5 +301,6 @@ export function clownHorror(k: Kit, b: Frame) {
   campRoom(k, b);
   showerRoom(k, b);
   exorcistRoom(k, b);
+  dreamRoom(k, b);
   k.fill = FILL;
 }
