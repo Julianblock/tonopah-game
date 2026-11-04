@@ -309,3 +309,54 @@ export function mizpahDempsey(k: Kit, b: Frame) {
   k.geo(juke, new THREE.CylinderGeometry(0.45, 0.45, 0.6, 16, 1, false, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2), 0, 1.1, 0, '#ffb040', k.lit(3.5));
   k.lamp(juke, 0, 1.2, 0.6, 3, 0.6, '#ffa860');
 }
+
+/**
+ * The stair core: a switchback staircase with mahogany rails climbing all five
+ * floors beside Nevada's first electric elevator, its brass cage gates at every landing.
+ */
+export function mizpahCore(k: Kit, b: Frame) {
+  k.seed = 24;
+  const ax = STAIR.x0 + 0.9, bx = STAIR.x1 - 0.9;
+  const z0 = STAIR.z1 - 0.05;
+  for (let fl = 0; fl < 4; fl++) {
+    const y = level(fl);
+    const rise = (fl === 0 ? G0 : FH) / 2;
+    const n = fl === 0 ? 13 : 10;
+    const run = 0.28;
+    const zl = z0 - n * run;
+    F.stairsRun(k, b, ax, y, z0, 1.6, rise, n, run, 0);
+    // Half landing across the back of the well.
+    k.slab(b, (STAIR.x0 + STAIR.x1) / 2, y + rise, zl - 0.75, STAIR.x1 - STAIR.x0, 1.5, '#6a1a22', '#e6dcc4', 0.2);
+    F.stairsRun(k, b, bx, y + rise, zl, 1.6, rise, n, run, Math.PI);
+    // Newel posts with brass caps at the foot of each flight.
+    for (const [x, z, yy] of [[ax + 0.8, z0, y], [bx - 0.8, zl, y + rise]] as [number, number, number][]) {
+      k.box(b, x, yy, z, 0.18, 1.15, 0.18, F.WOOD.mahogany, k.in(0.4));
+      k.sphere(b, x, yy + 1.22, z, 0.1, F.BRASS, k.in(0.25), 8);
+    }
+  }
+  // Balustrade round the well on the upper floors.
+  for (let fl = 1; fl < 5; fl++) {
+    const y = level(fl);
+    rail(k, b, STAIR.x0, ax + 0.8, STAIR.z0 - 0.02, y, 'x');
+    rail(k, b, STAIR.z0, STAIR.z1 - 0.3, STAIR.x1 + 0.02, y, 'z');
+  }
+  // Runner carpet tone on the treads comes from the stairs; the well walls are plaster.
+  const wellX = (STAIR.x0 + STAIR.x1) / 2;
+  for (let fl = 0; fl < 5; fl++) F.sconce(k, b, wellX, level(fl) + 2.3, STAIR.z0 - 0.02 + 0.02, 0, 4, 0.5);
+  F.elevator(k, b, LIFT.x, 0, LIFT.z, Math.PI / 2, [0, 1, 2, 3, 4].map(level));
+  // Shaft walls behind the cage.
+  for (const dz of [-0.9, 0.9]) k.ibox(b, LIFT.x, 0, LIFT.z + dz, 1.8, TOP - 0.3, 0.12, '#d8ccb0', 0.8);
+  k.ibox(b, LIFT.x - 0.9, 0, LIFT.z, 0.12, TOP - 0.3, 1.9, '#d8ccb0', 0.8);
+}
+
+/** Mahogany handrail on turned balusters along x or z. */
+function rail(k: Kit, b: Frame, a0: number, a1: number, at: number, y: number, along: 'x' | 'z') {
+  const len = Math.abs(a1 - a0), mid = (a0 + a1) / 2;
+  if (along === 'x') k.ibox(b, mid, y + 0.95, at, len, 0.07, 0.09, F.WOOD.mahogany, 0.4);
+  else k.ibox(b, at, y + 0.95, mid, 0.09, 0.07, len, F.WOOD.mahogany, 0.4);
+  for (let t = 0; t <= len; t += 0.16) {
+    const p = Math.min(a0, a1) + t;
+    if (along === 'x') k.cyl(b, p, y, at, 0.025, 0.02, 0.95, F.WOOD.mahogany, k.in(0.4), 5);
+    else k.cyl(b, at, y, p, 0.025, 0.02, 0.95, F.WOOD.mahogany, k.in(0.4), 5);
+  }
+}
