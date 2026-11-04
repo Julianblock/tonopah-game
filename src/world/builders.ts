@@ -19,7 +19,7 @@ export class SolidBuilder {
   private c = new THREE.Color();
 
   add(geo: THREE.BufferGeometry, m: THREE.Matrix4, color: string, { rough = 0.8, glow = 0, fx = 0 }: Mat = {}, seed = 0) {
-    const g = (geo.index ? geo.toNonIndexed() : geo).applyMatrix4(m);
+    const g = (geo.index ? geo.toNonIndexed() : geo.clone()).applyMatrix4(m);
     const p = g.attributes.position.array;
     const n = g.attributes.normal.array;
     this.c.set(color);
