@@ -575,9 +575,9 @@ export function mizpahFacade(k: Kit, b: Frame) {
   }
   k.light(b.p(0, my - 0.2, md / 2), 1, 0.85, 0.55, 3);
 
-  // Painted ghost sign high on the Brougher wall.
+  // Painted ghost sign in the brick band between the top two rows of windows.
   const south = k.side(b, W / 2, -D / 2, 1);
-  k.sign(south, 'mizpahWall', 0, TOP - 1.9, 0.03, 2.4, 0);
+  k.sign(south, 'mizpahWall', 0, level(4) - 0.05, 0.03, 1.4, 0);
   // Gooseneck lamps washing the brick between the ground-floor windows.
   for (const x of [-6.9, -2.6, 2.6, 6.9]) {
     k.box(b, x, G0 + 0.2, 0.1, 0.08, 0.08, 0.6, '#1a1a1a', { fx: FX.METAL });
