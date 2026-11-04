@@ -39,6 +39,7 @@ export function clownOffice(k: Kit): Frame {
   const [lo, hi] = k.footRange(fr, -OW / 2, OW / 2, -OD, 0);
   const base = Math.max(0.2, hi + 0.15);
   const b = fr.sub(0, base, 0);
+  k.block(b, -OW / 2 - 1.5, OW / 2 + 1.5, -OD - 1.5, 4.5);
   k.box(b, 0, lo - base - 0.4, -OD / 2, OW + 0.2, base - lo + 0.4, OD + 0.2, '#b8b0a4', { rough: 0.95 });
   k.stairs(b, -3, -base, Math.max(1, Math.round(base / 0.17)) * 0.3, 1.8, base, Math.max(1, Math.round(base / 0.17)), '#b8b0a4', '#b8b0a4');
 
@@ -196,6 +197,7 @@ export function clownWing(k: Kit): Frame {
   const [lo, hi] = k.footRange(fr, -RL / 2 - 2, RL / 2 + 2, -RD, 13);
   const base = Math.max(0.2, hi + 0.15);
   const b = fr.sub(0, base, 0);
+  k.block(b, -RL / 2 - 3, RL / 2 + 3, -RD - 1.5, 13);
   k.box(b, 0, lo - base - 0.4, -RD / 2 + 1, RL + 0.4, base - lo + 0.4, RD + 2.2, '#b8b0a4', { rough: 0.95 });
   const top = RH * 2 + 0.6;
 
