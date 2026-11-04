@@ -123,6 +123,27 @@ function halloweenRoom(k: Kit, b: Frame) {
   k.lamp(rf, 0, 1.0, -3, 3, 0.25, '#ff8a3a');
 }
 
+/**
+ * 110, the TV room: the set left on a dead channel, its snow the only light,
+ * a little girl in a white nightgown sat cross-legged a foot from the screen,
+ * and every chair in the room stacked into a tower on the table.
+ */
+function staticRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 110);
+  const scr = rf.sub(RW / 2 - 0.4, 0.85, -4.3, -Math.PI / 2);
+  k.sign(scr, 'tvStatic', 0, 0.28, 0.045, 0.47, 2.6, FX.INTERIOR);
+  k.lamp(scr, 0, 0.3, 1.2, 4.5, 0.7, '#b8c8ff');
+  const girl = rf.sub(0.95, 0, -4.3, Math.PI / 2);
+  k.geo(girl, new THREE.CylinderGeometry(0.16, 0.22, 0.12, 10).translate(0, 0.06, 0), 0, 0, 0, '#f4f4f0', k.in(0.8));
+  k.geo(girl, new THREE.CylinderGeometry(0.1, 0.15, 0.38, 10).translate(0, 0.19, 0), 0, 0.1, 0, '#f4f4f0', k.in(0.8));
+  k.sphere(girl, 0, 0.6, 0, 0.09, '#f0dcd0', k.in(0.6), 10);
+  k.sphere(girl, 0, 0.63, -0.02, 0.095, '#e8d8a0', k.in(0.95), 10);
+  k.ibox(girl, 0, 0.36, -0.07, 0.18, 0.28, 0.04, '#e8d8a0', 0.95);
+  for (const sx of [-0.08, 0.08]) k.ibox(girl, sx, 0.2, 0.12, 0.05, 0.05, 0.25, '#f0dcd0', 0.6, 0);
+  // Chairs stacked in a leaning tower on the table.
+  for (let i = 0; i < 4; i++) F.chair(k, rf, 0.8 + (i % 2) * 0.06, 0.72 + i * 0.5, -1.3, i * 1.3, F.WOOD.oak, '#c8a040');
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -130,5 +151,6 @@ export function clownHorror(k: Kit, b: Frame) {
   balloonRoom(k, b);
   overlookRoom(k, b);
   halloweenRoom(k, b);
+  staticRoom(k, b);
   k.fill = FILL;
 }
