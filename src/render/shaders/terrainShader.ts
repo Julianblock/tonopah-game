@@ -271,7 +271,7 @@ void main() {
   }
 
   if (uVision > 0.0) {
-    // The Highland Range 16 million years ago: fresh black lava, ash-dark slopes
+    // Mount Butler 16 million years ago: fresh black lava, ash-dark slopes
     // and incandescent flows threading down from the vents.
     float core = smoothstep(uVolcano.z, uVolcano.z * 0.45, length(xz - uVolcano.xy)) * uVision;
     vec2 wq = xz / 260.0 + vec2(fbm(xz / 900.0, 3), fbm(xz / 900.0 + 9.0, 3)) * 2.2;
