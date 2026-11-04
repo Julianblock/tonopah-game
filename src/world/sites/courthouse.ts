@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { type Frame, FX } from '../builders';
-
+import * as F from '../furniture';
 import type { Hole, Kit } from '../kit';
 
 // The Nye County Courthouse of 1905, at the head of Brougher Avenue: built when
@@ -146,4 +146,72 @@ function dome(k: Kit, b: Frame) {
   k.geo(c, new THREE.SphereGeometry(0.85, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0, 3.65 + R + 1.4, 0, '#b8bcc0', { fx: FX.METAL });
   k.cyl(c, 0, 3.65 + R + 2.2, 0, 0.05, 0.02, 1.4, BRASS_GOLD, { fx: FX.METAL }, 6);
   k.sphere(c, 0, 3.65 + R + 3.6, 0, 0.14, BRASS_GOLD, { fx: FX.METAL });
+}
+
+/**
+ * Downstairs: a terrazzo hall from the doors to the grand stair, the Clerk and
+ * Recorder's counter on one side, the Assessor and Treasurer on the other.
+ */
+export function courthouseOffices(k: Kit, b: Frame) {
+  k.seed = 61;
+  const HW = 2.4;
+  for (let x = -W / 2 + 0.4; x < W / 2 - 0.4; x += 1.2) {
+    for (let z = -0.4; z > -D + 0.4; z -= 1.2) {
+      const odd = (Math.round(x / 1.2) + Math.round(z / 1.2)) % 2 !== 0;
+      k.box(b, x + 0.6, 0, z - 0.6, 1.19, 0.02, 1.19, odd ? '#d8d0bc' : '#a8382a', k.in(0.35));
+    }
+  }
+  // Hall walls with office doors and transoms.
+  for (const s of [-1, 1] as const) {
+    const wf = k.side(b, s * HW, -D / 2, -s as 1 | -1);
+    const holes: Hole[] = [-6, 2].map((x) => ({ x, y: 0, w: 1.1, h: 2.4 }));
+    k.wall(wf, -D / 2 + 0.4, D / 2 - 0.4, 0.1, 0, L1, 0.15, PLASTER, PLASTER, holes, k.in(0.8));
+    for (const x of [-6, 2]) {
+      F.door(k, wf, x - 0.5, 0, 0.15, 1.0, 2.35, 1.1, F.WOOD.oak);
+      k.box(wf, x, 2.5, 0.13, 1.0, 0.5, 0.02, '#e8e4c8', k.lit(1.6));
+    }
+    for (let x = -D / 2 + 1; x < D / 2 - 1; x += 0.5) k.box(wf, x, 0, 0.12, 0.5, 1.0, 0.02, F.WOOD.oak, k.in(0.6));
+    k.box(wf, 0, 1.0, 0.13, D - 0.8, 0.06, 0.04, F.WOOD.walnut, k.in(0.5));
+  }
+  for (let z = -2; z > -14; z -= 4) {
+    F.chandelier(k, b, 0, L1 - 0.5, z, 0.5, 6, 6, 1.0);
+  }
+  // Clerk and Recorder: a long counter with a brass grille, ledgers and files.
+  const clerk = b.sub(-W / 4 - 1.2, 0, -D / 2 + 1);
+  k.ibox(clerk, 0, 0, 0, 0.7, 1.1, 9, F.WOOD.oak, 0.5);
+  k.ibox(clerk, 0, 1.1, 0, 0.8, 0.05, 9.1, F.WOOD.walnut, 0.4);
+  for (let z = -4.2; z <= 4.2; z += 0.12) k.box(clerk, 0, 1.15, z, 0.02, 0.9, 0.02, F.BRASS, k.in(0.3));
+  for (const z of [-2.5, 0, 2.5]) k.ibox(clerk, 0, 1.15, z, 0.1, 0.9, 0.7, F.WOOD.walnut, 0.5);
+  for (let i = 0; i < 6; i++) {
+    const fz = -4 + i * 1.6;
+    k.ibox(clerk, -2.5, 0, fz, 0.6, 1.4, 1.4, '#5a5a52', 0.6);
+    for (let r = 0; r < 4; r++) k.box(clerk, -2.18, 0.1 + r * 0.34, fz, 0.01, 0.04, 0.2, F.BRASS, k.in(0.3));
+    k.ibox(clerk, -1.3, 0, fz, 1.2, 0.76, 0.8, F.WOOD.oak, 0.6);
+    for (let l = 0; l < 3; l++) k.ibox(clerk, -1.3, 0.76 + l * 0.08, fz - 0.15, 0.4, 0.07, 0.3, ['#4a1a14', '#1a2a4a', '#2a3a1a'][l], 0.7);
+    F.chair(k, clerk, -1.3, 0, fz + 0.6, Math.PI, F.WOOD.oak);
+  }
+  k.lamp(clerk, -1.4, 3.6, -2.5, 6, 1.0);
+  k.lamp(clerk, -1.4, 3.6, 2.5, 6, 1.0);
+  // Assessor and Treasurer: desks with green lamps, a big safe, the county map.
+  const tre = b.sub(W / 4 + 1.2, 0, -D / 2 + 1);
+  for (let i = 0; i < 3; i++) {
+    const tz = -3.5 + i * 3.2;
+    F.table(k, tre, 0.6, 0, tz, 1.6, 0.9, F.WOOD.walnut, F.WOOD.walnut, 0.78);
+    k.cyl(tre, 0.4, 0.78, tz, 0.08, 0.08, 0.3, F.BRASS, k.in(0.3), 6);
+    k.geo(tre, new THREE.CylinderGeometry(0.08, 0.2, 0.14, 10, 1, true), 0.4, 1.12, tz, '#1a6a3a', k.lit(1.8));
+    k.lamp(tre, 0.4, 1.0, tz, 2.0, 0.5, '#d8f0c0');
+    F.chair(k, tre, 0.6, 0, tz - 0.8, 0, F.WOOD.walnut, '#3a2a1a');
+  }
+  const safe = tre.sub(2.6, 0, 4);
+  k.ibox(safe, 0, 0, 0, 1.0, 1.9, 1.0, '#2a3a2a', 0.4);
+  k.box(safe, -0.51, 0.3, 0, 0.02, 1.3, 0.8, '#3a4a3a', k.in(0.3));
+  k.cyl(safe.sub(-0.53, 1.1, 0, -Math.PI / 2), 0, 0, 0, 0.12, 0.12, 0.04, F.BRASS, k.in(0.3), 12);
+  k.box(safe, -0.52, 1.6, 0, 0.01, 0.15, 0.6, F.BRASS, k.in(0.3));
+  F.picture(k, b, W / 2 - 0.45, 1.8, -D / 2 - 6, 2.4, 1.6, -Math.PI / 2, 61, F.WOOD.walnut);
+  k.lamp(tre, 0.6, 3.6, -1, 6, 1.0);
+  k.lamp(tre, 0.6, 3.6, 3, 6, 1.0);
+  // The grand stair up the back of the hall.
+  k.stairs(b, 0, 0, -14.6, 2.2, L1, 27, '#8a5a32', '#6a4428', 0.28, 0, F.WOOD.walnut);
+  for (const s of [-1, 1]) k.cyl(b, s * 1.2, 0, -14.4, 0.09, 0.09, 1.2, F.WOOD.walnut, k.in(0.5), 8);
+  F.picture(k, b, 0, 2.6, -D + 0.45, 1.4, 1.8, 0, 62);
 }
