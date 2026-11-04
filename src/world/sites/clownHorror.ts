@@ -144,6 +144,31 @@ function staticRoom(k: Kit, b: Frame) {
   for (let i = 0; i < 4; i++) F.chair(k, rf, 0.8 + (i % 2) * 0.06, 0.72 + i * 0.5, -1.3, i * 1.3, F.WOOD.oak, '#c8a040');
 }
 
+/**
+ * 112, the doll room: a talking doll in a striped sweater and dungarees sat
+ * up against the pillows with a kitchen knife, his empty box on the dresser,
+ * and his little footprints across the carpet to the door.
+ */
+function dollRoom(k: Kit, b: Frame) {
+  const rf = roomFrame(b, 112);
+  const doll = rf.sub(-1.3, 0.6, -4.3, Math.PI / 2);
+  for (const sx of [-0.06, 0.06]) k.ibox(doll, sx, 0, 0.12, 0.09, 0.08, 0.32, '#3a5a9a', 0.8);
+  k.ibox(doll, 0, 0, 0, 0.26, 0.35, 0.14, '#3a5a9a', 0.8);
+  for (let i = 0; i < 5; i++) k.ibox(doll, 0, 0.12 + i * 0.05, 0.002, 0.27, 0.025, 0.145, ['#d81a1a', '#2a6ad8', '#2aa84a', '#f0c828', '#d81a1a'][i], 0.8);
+  for (const sx of [-0.16, 0.16]) k.ibox(doll, sx, 0.12, 0.04, 0.06, 0.24, 0.07, '#d81a1a', 0.8);
+  k.sphere(doll, 0, 0.47, 0.01, 0.11, '#f4d8c0', k.in(0.6), 10);
+  k.sphere(doll, 0, 0.51, -0.02, 0.112, '#e8501a', k.in(0.95), 10);
+  for (const sx of [-0.04, 0.04]) k.sphere(doll, sx, 0.49, 0.1, 0.016, '#2a6ad8', k.in(0.2), 6);
+  for (const [sx, sy] of [[-0.05, 0.43], [0.04, 0.4], [0.0, 0.53]]) k.ibox(doll, sx, sy, 0.105, 0.06, 0.006, 0.006, '#8a1a1a', 0.6, 0.5);
+  k.ibox(doll, 0.16, 0.0, 0.18, 0.025, 0.004, 0.22, '#d8dce0', 0.1);
+  const box = rf.sub(RW / 2 - 0.3, 0, -3.25, -Math.PI / 2 - 0.3);
+  k.ibox(box, 0, 0, -0.05, 0.36, 0.55, 0.12, '#1a4ad0', 0.6);
+  k.sign(box, 'goodGuys', 0, 0.27, 0.012, 0.54, 0.3, FX.INTERIOR);
+  for (let i = 0; i < 9; i++) k.ibox(rf, -0.6 + i * 0.12 + (i % 2) * 0.06, 0.02, -3.2 + i * 0.32, 0.05, 0.003, 0.09, '#5a0a10', 0.9, 0.3);
+  k.lamp(rf, -1.6, 1.0, -5.4, 2.5, 0.35, '#ffd0a0');
+  k.sphere(rf, -1.65, 0.95, -5.45, 0.05, '#ffd0a0', k.lit(3), 6);
+}
+
 /** Dresses the horror rooms. */
 export function clownHorror(k: Kit, b: Frame) {
   k.seed = 46;
@@ -152,5 +177,6 @@ export function clownHorror(k: Kit, b: Frame) {
   overlookRoom(k, b);
   halloweenRoom(k, b);
   staticRoom(k, b);
+  dollRoom(k, b);
   k.fill = FILL;
 }
