@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { type Frame, FX } from '../builders';
 import * as F from '../furniture';
-import type { Hole, Kit } from '../kit';
+import { FILL, type Hole, type Kit } from '../kit';
 
 // The Clown Motel, 1985: built by Leona and Leroy David beside the Old Tonopah
 // Cemetery, where their father Clarence lies, and named for his collection of
@@ -21,6 +21,10 @@ export const ROOMS = 14;
 export const RW = RL / ROOMS;
 /** Rooms whose doors stand open: the horror-themed ones and a couple of others. */
 export const OPEN = new Set([102, 104, 106, 108, 110, 112, 201, 204, 207, 209, 210, 213]);
+/** The horror rooms keep their own lighting: no ceiling or bedside lamp. */
+/** Ambient fill in the horror rooms. */
+export const DARK = 0.15;
+export const HORROR = new Set([104, 106, 108, 110, 112, 201, 204, 207, 210, 213]);
 /** Centre of room i (0 = south end) along the block. */
 export const roomX = (i: number) => -RL / 2 + RW * (i + 0.5);
 
@@ -309,6 +313,7 @@ export function clownRooms(k: Kit, b: Frame) {
       const num = (fl + 1) * 100 + i + 1;
       const rf = roomFrame(b, num);
       const h = (n: number) => Math.abs(Math.sin(num * 12.9898 + n * 78.233) * 43758.5453) % 1;
+      k.fill = HORROR.has(num) ? DARK : FILL;
       if (i < ROOMS - 1) k.ibox(rf, RW / 2, 0, -RD / 2, 0.16, RH - 0.02, RD - 0.6, ['#f4e8c8', '#f4d8d8', '#d8e4f4', '#e4f0d8'][Math.floor(h(1) * 4)], 0.9);
       k.ibox(rf, 0, 0.005, -RD / 2, RW - 0.16, 0.02, RD - 0.6, ['#b8642a', '#6a4a2a', '#2a6a6a', '#8a2a2a', '#7a6a3a'][Math.floor(h(2) * 5)], 1);
       k.ibox(rf, 0, RH - 0.32, -RD / 2, RW - 0.16, 0.02, RD - 0.6, '#f4f0e6', 0.95);
@@ -328,7 +333,8 @@ export function clownRooms(k: Kit, b: Frame) {
       const wallL = rf.sub(-RW / 2 + 0.09, 0, -4.3, Math.PI / 2);
       k.sign(wallL, `clownArt${Math.floor(h(4) * 6)}`, 0, 1.75, 0.01, 0.75, 0.4, FX.INTERIOR);
       F.clown(k, rf, -1.55, 0.62, -4.0, 1.7, num, Math.PI / 2);
-      F.nightstand(k, rf, -1.65, 0, -5.45, Math.PI / 2, F.WOOD.oak, '#f8e8c0', true);
+      const dark = HORROR.has(num);
+      F.nightstand(k, rf, -1.65, 0, -5.45, Math.PI / 2, F.WOOD.oak, '#f8e8c0', !dark);
       // Dresser and TV on the far wall, a shelf of clowns above.
       F.dresser(k, rf, RW / 2 - 0.35, 0, -4.3, -Math.PI / 2, F.WOOD.oak, false);
       F.tv(k, rf, RW / 2 - 0.4, 0.85, -4.3, -Math.PI / 2, h(5) < 0.3);
@@ -338,8 +344,9 @@ export function clownRooms(k: Kit, b: Frame) {
       F.roundTable(k, rf, 0.8, 0, -1.3, 0.38, F.WOOD.oak, 0.72);
       F.chair(k, rf, 0.2, 0, -1.4, Math.PI / 2, F.WOOD.oak, '#c8a040');
       F.chair(k, rf, 1.4, 0, -1.5, -Math.PI / 2, F.WOOD.oak, '#c8a040');
-      k.cyl(rf, 0, RH - 0.42, -3.8, 0.25, 0.18, 0.1, '#fff4dc', k.lit(2.4), 12);
-      k.lamp(rf, 0, RH - 0.6, -3.8, 5.5, 0.8);
+      k.cyl(rf, 0, RH - 0.42, -3.8, 0.25, 0.18, 0.1, '#fff4dc', dark ? k.in(0.5) : k.lit(2.4), 12);
+      if (!dark) k.lamp(rf, 0, RH - 0.6, -3.8, 5.5, 0.8);
     }
   }
+  k.fill = FILL;
 }
