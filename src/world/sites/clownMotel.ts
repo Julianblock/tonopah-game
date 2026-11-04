@@ -317,10 +317,10 @@ export function clownRooms(k: Kit, b: Frame) {
       k.ibox(rf, 0, 0.01, -8.7, RW - 0.2, 0.01, 2.1, '#e8f0f0', 0.3);
       k.ibox(rf, -1.15, 0, -9.3, 1.5, 0.55, 0.75, '#f8f8f4', 0.2);
       k.ibox(rf, -1.15, 0.45, -9.3, 1.36, 0.08, 0.6, '#c8d8e0', 0.1);
-      k.ibox(rf, 0.45, 0, -9.45, 0.38, 0.42, 0.55, '#f8f8f4', 0.2);
-      k.ibox(rf, 0.45, 0.42, -9.62, 0.4, 0.4, 0.2, '#f8f8f4', 0.2);
-      k.ibox(rf, 1.3, 0, -8.2, 0.9, 0.85, 0.5, '#d8c8b0', 0.5);
-      k.box(rf, 1.3, 1.1, -7.53, 0.8, 0.8, 0.02, '#b8c4c8', k.in(0.05, 0.5));
+      k.ibox(rf, 0.35, 0, -9.4, 0.38, 0.42, 0.55, '#f8f8f4', 0.2);
+      k.ibox(rf, 0.35, 0.42, -9.57, 0.4, 0.4, 0.2, '#f8f8f4', 0.2);
+      k.ibox(rf, 1.35, 0, -9.42, 0.9, 0.85, 0.52, '#d8c8b0', 0.5);
+      k.box(rf, 1.35, 1.1, -9.68, 0.8, 0.8, 0.02, '#b8c4c8', k.in(0.05, 0.5));
       // Bed against the party wall, a clown portrait over it and one on the pillow.
       const spread = ['#d81a1a', '#2a5ad0', '#f0c828', '#8a3ad8', '#e86ab8', '#2aa84a'][Math.floor(h(3) * 6)];
       F.bed(k, rf, -0.9, 0, -4.3, Math.PI / 2, spread, F.WOOD.oak, 1.5);
