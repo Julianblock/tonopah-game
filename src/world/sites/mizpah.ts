@@ -477,6 +477,71 @@ function room(k: Kit, b: Frame, fl: number, side: 1 | -1, s: number, num: number
   return rf;
 }
 
+/** Room 502's frame: fifth floor, Brougher side, second from the front. */
+export const room502 = (b: Frame) => b.sub(4.25, level(4), slotZ(1), Math.PI / 2);
+
+/**
+ * Room 502, the Lady in Red's room. A working girl strangled by a jealous lover
+ * in the fifth-floor hall; guests still find pearls on their pillows. The hotel
+ * keeps it as a shrine: red velvet, roses, candles and her portrait.
+ */
+export function mizpah502(k: Kit, b: Frame) {
+  k.seed = 28;
+  const rf = room502(b);
+  const RED = '#8a0e16';
+  const DEEP = '#4a060c';
+  // Red silk wallpaper over the side walls.
+  for (const x of [-3.1, 3.1]) k.ibox(rf, x, 0, 0, 0.02, FH - 0.95, 6.3, '#6a0c14', 0.6);
+  F.rug(k, rf, 0.2, 0.012, 0.6, 2.9, 3.3, '#5a0810', '#c8a060');
+  // Red velvet counterpane and bolsters over the bed.
+  const bed = rf.sub(2.0, 0, 0.4, -Math.PI / 2);
+  k.ibox(bed, 0, 0.49, 0.12, 1.62, 0.12, 1.76, RED, 0.85);
+  k.ibox(bed, 0, 0.3, 0.12, 1.64, 0.3, 1.78, RED, 0.85);
+  for (const px of [-0.38, 0.38]) k.ibox(bed, px, 0.6, -0.76, 0.66, 0.16, 0.38, DEEP, 0.7);
+  // A string of pearls left on the pillow.
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2;
+    k.sphere(bed, 0.32 + Math.cos(a) * 0.12, 0.77, -0.74 + Math.sin(a) * 0.08, 0.012, '#f6f0e4', k.in(0.15, 0.9), 5);
+  }
+  // Rose petals scattered over the counterpane and the floor.
+  for (let i = 0; i < 40; i++) {
+    const h = (n: number) => Math.abs(Math.sin(i * 91.7 + n * 13.1) * 4375.5) % 1;
+    const onBed = i < 18;
+    const px = onBed ? 2.0 + (h(1) - 0.5) * 1.4 : (h(1) - 0.5) * 4.5;
+    const pz = onBed ? 0.6 + (h(2) - 0.5) * 1.4 : (h(2) - 0.5) * 4.5;
+    k.ibox(rf, px, onBed ? 0.62 : 0.015, pz, 0.04, 0.005, 0.03, h(3) < 0.5 ? '#a8101c' : '#7a0a12', 0.7, h(4) * 6);
+  }
+  // Heavy red drapes tied back at both windows.
+  for (const wx of [-1.6, 1.6]) {
+    for (const cx of [-0.85, 0.85]) k.ibox(rf, wx + cx, 0.02, 2.9, 0.3, 2.85, 0.08, RED, 0.9);
+    k.ibox(rf, wx, 2.55, 2.9, 1.95, 0.4, 0.1, DEEP, 0.9);
+  }
+  // Candles and a vase of red roses on the dresser.
+  const dr = rf.sub(-2.85, 0.85, 0.9, Math.PI / 2);
+  for (const [cx, ch] of [[-0.45, 0.22], [-0.33, 0.15], [0.4, 0.26]]) {
+    k.cyl(dr, cx, 0, 0.05, 0.025, 0.025, ch, '#f4ecd8', k.in(0.6), 8);
+    k.sphere(dr, cx, ch + 0.02, 0.05, 0.012, '#ffb24a', k.lit(6), 5);
+  }
+  k.lamp(dr, 0, 0.5, 0.1, 4, 0.6, '#ff8a4a');
+  k.cyl(dr, 0.05, 0, 0.05, 0.05, 0.07, 0.24, '#c8d4d8', k.in(0.1), 10);
+  for (let i = 0; i < 9; i++) {
+    const a = i * 2.4;
+    k.sphere(dr, 0.05 + Math.cos(a) * 0.07, 0.3 + (i % 3) * 0.03, 0.05 + Math.sin(a) * 0.07, 0.03, '#a00e1a', k.in(0.8), 6);
+  }
+  // Her portrait over the bed: a gilt frame, a woman in red against the dark.
+  const pf = rf.sub(3.06, 1.55, 0.4, -Math.PI / 2);
+  k.ibox(pf, 0, 0, 0, 0.92, 1.22, 0.05, '#b08a3a', 0.3);
+  k.ibox(pf, 0, 0.06, 0.03, 0.78, 1.08, 0.01, '#1a1012', 0.9);
+  k.ibox(pf, 0, 0.1, 0.04, 0.42, 0.55, 0.01, '#9a0e18', 0.7);
+  k.ibox(pf, 0, 0.62, 0.04, 0.22, 0.12, 0.01, '#9a0e18', 0.7);
+  k.sphere(pf, 0, 0.82, 0.04, 0.08, '#e8d0c0', k.in(0.6), 8);
+  k.ibox(pf, 0, 0.86, 0.035, 0.22, 0.16, 0.01, '#2a1410', 0.9);
+  for (let i = 0; i < 9; i++) k.sphere(pf, -0.08 + i * 0.02, 0.7 - Math.sin((i / 8) * Math.PI) * 0.04, 0.05, 0.008, '#f6f0e4', k.in(0.2), 4);
+  // A red glass shade turns the ceiling lamp to a blush.
+  k.sphere(rf, 0, FH - 0.6, 0.3, 0.17, '#c0202a', k.lit(2.2), 10);
+  k.lamp(rf, 0, FH - 0.9, 0.3, 6, 0.8, '#ff4a4a');
+}
+
 /**
  * The Mizpah's street face: the vertical neon blade at the Brougher corner with
  * bulbs chasing round it, the bulb-lit marquee over the doors, the faded painted
