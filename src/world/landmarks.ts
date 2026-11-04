@@ -9,7 +9,7 @@ import type { OsmData } from './meta';
 import { buildSignAtlas } from './signAtlas';
 import { clownCollection, clownLobby, clownOffice, clownPole, clownRooms, clownWing } from './sites/clownMotel';
 import { clownHorror } from './sites/clownHorror';
-import { stationDining, stationFloor, stationPylon, stationShell } from './sites/station';
+import { stationDining, stationFloor, stationHotel, stationPylon, stationShell } from './sites/station';
 import { mizpah502, mizpahCore, mizpahDempsey, mizpahFacade, mizpahFloors, mizpahLobby, mizpahRooms, mizpahShell } from './sites/mizpah';
 
 const LAMPS = 48;
@@ -64,6 +64,7 @@ export class Landmarks {
     stationFloor(k, station);
     stationDining(k, station);
     stationPylon(k, station);
+    stationHotel(k, station);
 
     const lampUniforms = { uLamps: { value: this.lampPos }, uLampCol: { value: this.lampCol } };
     this.solidMat = new THREE.ShaderMaterial({

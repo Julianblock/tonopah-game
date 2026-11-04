@@ -271,3 +271,47 @@ export function stationPylon(k: Kit, c: Frame) {
   tri.closePath();
   k.geo(fr, new THREE.ExtrudeGeometry(tri, { depth: 0.8, bevelEnabled: false }).translate(0, 0, -0.4), 0, y0 + sh + 0.2, 0, '#5a3a22', { rough: 0.9 });
 }
+
+/**
+ * The hotel out back: two storeys of rooms off an open walkway, depot siding
+ * and green doors, with the RV park's hookups beyond.
+ */
+export function stationHotel(k: Kit, c: Frame) {
+  k.seed = 54;
+  const L = 52, D2 = 12, H = 2.9;
+  const hf = c.sub(4, 0, -CD - 20, Math.PI);
+  const [lo] = k.footRange(hf, -L / 2, L / 2, -D2, 3);
+  k.block(hf, -L / 2 - 2, L / 2 + 2, -D2 - 1, 3);
+  k.box(hf, 0, lo - 0.4, -D2 / 2 + 1, L + 4, 0.4 - lo, D2 + 2, '#8a7a66', { rough: 1 });
+  for (let fl = 0; fl < 2; fl++) {
+    const holes: Hole[] = [];
+    for (let i = 0; i < 13; i++) {
+      const x = -L / 2 + 4 * (i + 0.5);
+      holes.push({ x: x - 1.0, y: fl * H, w: 0.95, h: 2.1, trim: TRIM });
+      holes.push({ x: x + 0.8, y: fl * H + 0.9, w: 1.4, h: 1.1, glass: true, trim: TRIM });
+      k.box(hf, x - 1.0, fl * H, -0.15, 0.92, 2.08, 0.05, '#2a5a3a', { rough: 0.5 });
+      k.box(hf, x - 0.2, fl * H + 2.3, 0.1, 0.2, 0.2, 0.12, '#fff0d0', { glow: 1.6 });
+    }
+    k.wall(hf, -L / 2, L / 2, 0, fl * H - (fl ? 0 : 0.1), (fl + 1) * H, 0.3, SIDING, '#e8d8b8', holes, { rough: 0.9 });
+  }
+  k.box(hf, 0, -0.1, -D2 / 2, L, H * 2 + 0.7, D2 - 0.6, '#d8c8a8', k.in(0.9));
+  k.box(hf, 0, -0.1, -D2 + 0.15, L, H * 2 + 0.7, 0.3, SIDING, { rough: 0.9 });
+  for (const s of [-1, 1]) k.box(hf, (s * L) / 2, -0.1, -D2 / 2, 0.3, H * 2 + 0.7, D2, SIDING, { rough: 0.9 });
+  for (let x = -L / 2; x <= L / 2; x += 0.6) k.box(hf, x, -0.1, -D2 + 0.0, 0.08, H * 2 + 0.6, 0.05, BATTEN, { rough: 0.9 });
+  k.box(hf, 0, H * 2 + 0.5, -D2 / 2 + 1, L + 1.4, 0.2, D2 + 2.6, '#5a3a22', { rough: 0.9 });
+  // Walkway, rails, posts and a stair at each end.
+  k.box(hf, 0, H - 0.22, 1.0, L + 4, 0.22, 2.0, '#9a8a72', { rough: 0.9 });
+  for (let x = -L / 2 - 2; x <= L / 2 + 2.01; x += 4) k.box(hf, x, 0, 1.95, 0.2, H * 2 + 0.5, 0.2, '#6a4a2a', { rough: 0.9 });
+  for (const y of [H + 0.95, H + 0.45]) k.box(hf, 0, y, 1.97, L + 4, 0.08, 0.08, '#6a4a2a', { rough: 0.9 });
+  for (const s of [-1, 1]) k.stairs(hf, s * (L / 2 + 1.2), 0, 2.0 + 16 * 0.28, 1.2, H, 16, '#9a8a72', '#8a7a66', 0.28, 0, '#6a4a2a');
+  k.lot(hf, 0, 9, L, 10, 0.5);
+  // RV hookups in a row beyond the hotel.
+  const rv = hf.sub(0, 0, 26);
+  for (let i = 0; i < 10; i++) {
+    const x = -L / 2 + 3 + i * 5.2;
+    const g = rv.p(x, 0, 0);
+    const y = k.hf.height(g.x, g.z) - rv.o.y;
+    k.box(rv, x, y, 0, 0.3, 1.0, 0.2, '#6a6a68', { fx: FX.METAL });
+    k.box(rv, x, y + 1.0, 0, 0.4, 0.3, 0.3, '#3a3a38', { fx: FX.METAL });
+  }
+}
