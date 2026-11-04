@@ -15,7 +15,7 @@ export const REGIONS = {
   mid: { size: 92000, heightRes: 2048, heightZoom: 12, imageRes: 4096, imageZoom: 13 },
   far: { size: 400000, heightRes: 1024, heightZoom: 9, imageRes: 2048, imageZoom: 10 },
   // Tonopah itself: Main Street, the Mizpah, the Clown Motel, the mining park and the Station.
-  town: { size: 6000, cx: 200, cz: 300, heightRes: 2048, heightZoom: 15, imageRes: 4096, imageZoom: 17 },
+  town: { size: 6000, cx: 200, cz: 300, heightRes: 2048, heightZoom: 15, imageRes: 4096, imageZoom: 16 },
 };
 
 // Heights are packed into 16 bits across the R and G channels of an 8-bit PNG.
