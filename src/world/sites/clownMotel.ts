@@ -271,3 +271,25 @@ export function clownWing(k: Kit): Frame {
   return b;
 }
 
+/** The pole sign beside US-95 in front of the office, VACANCY buzzing beneath. */
+export function clownPole(k: Kit, office: Frame) {
+  k.seed = 44;
+  const o = office.p(0, 0, 0);
+  const h = k.nearestHighway(o.x, o.z);
+  const toward = new THREE.Vector2(o.x - h.px, o.z - h.pz).normalize();
+  const px = h.px + toward.x * 14, pz = h.pz + toward.y * 14;
+  const fr = k.frame(px, pz, -toward.x, -toward.y);
+  const sh = 3.6, sw = k.signW('clownPole', sh), y0 = 6.2;
+  for (const sx of [-sw / 3, sw / 3]) k.cyl(fr, sx, -0.5, 0, 0.16, 0.14, y0 + sh + 0.7, '#e8e8e4', { rough: 0.5, fx: FX.METAL }, 10);
+  k.box(fr, 0, y0 - 0.15, 0, sw + 0.4, sh + 0.3, 0.4, '#f8f8f4', { rough: 0.6 });
+  k.sign(fr, 'clownPole', 0, y0 + sh / 2, 0.21, sh, 0.6, FX.NONE, 0, false);
+  k.sign(fr, 'clownPole', 0, y0 + sh / 2, -0.21, sh, 0.6, FX.NONE, Math.PI, false);
+  const vh = 0.8, vw = k.signW('clownVacancy', vh);
+  k.box(fr, 0, y0 - 1.6, 0, vw + 0.2, vh + 0.2, 0.3, '#1a1a1a', { rough: 0.5 });
+  k.sign(fr, 'clownVacancy', 0, y0 - 1.1, 0.16, vh, 1.6, FX.NEON);
+  k.sign(fr, 'clownVacancy', 0, y0 - 1.1, -0.16, vh, 1.6, FX.NEON, Math.PI);
+  for (const sx of [-1, 1]) {
+    k.box(fr, sx * (sw / 2 - 0.4), y0 - 0.5, 1.2, 0.2, 0.2, 0.3, '#2a2a2a', { fx: FX.METAL });
+    k.light(fr.p(sx * (sw / 2 - 0.4), y0 - 0.4, 1.4), 1, 0.92, 0.8, 1.6);
+  }
+}
